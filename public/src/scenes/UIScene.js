@@ -39,6 +39,7 @@ import { SaveSystem } from '../systems/SaveSystem.js';
 import { Cloud } from '../systems/Cloud.js';
 import { GUEST_KEY } from '../ui/AuthGate.js';
 import { ONLINE } from '../config/online.js';
+import { RankingPanel } from '../ui/RankingPanel.js';
 import { summon, buyCage } from '../systems/Gacha.js';
 import { Button } from '../ui/Button.js';
 import { Panel } from '../ui/Panel.js';
@@ -79,7 +80,7 @@ const NAV = [
   { id: 'items', icon: 'icon_bag', scale: 4.6, kids: ['inventory', 'forge'] },
   { id: 'battle', icon: 'ui_bomb', scale: 4.2, kids: ['battle'], center: true },
   { id: 'base', icon: 'icon_house', scale: 4.6, kids: ['house', 'skills', 'market'] },
-  { id: 'more', icon: 'icon_menu', scale: 3.4, kids: ['more', 'map', 'clan', 'settings'], noSub: true },
+  { id: 'more', icon: 'icon_menu', scale: 3.4, kids: ['more', 'map', 'clan', 'ranking', 'settings'], noSub: true },
 ];
 const PARENT = {};
 NAV.forEach((n) => n.kids.forEach((k) => { PARENT[k] = n.id; }));
@@ -151,6 +152,7 @@ export class UIScene extends Phaser.Scene {
       }),
       market: new MarketPanel(this, { onClose: () => this.showTab('battle') }),
       clan: new ClanPanel(this, { onClose: () => this.showTab('battle') }),
+      ranking: new RankingPanel(this, { onClose: () => this.showTab('battle') }),
       more: this.buildMorePanel(),
       forge: new RitualPanel(this, {
         onClose: () => this.showTab('battle'),
@@ -1036,7 +1038,7 @@ export class UIScene extends Phaser.Scene {
       { id: 'friends', icon: 'ui_heroes', scale: 4.4, label: STR.moreFriends, soon: true },
       { id: 'events', icon: 'ui_chest', scale: 4.8, label: STR.moreEvents, soon: true },
       { id: 'shop', icon: 'crystal', scale: 5.2, label: STR.moreShop, soon: true },
-      { id: 'ranking', icon: 'icon_trophy', scale: 5, label: STR.moreRanking, soon: true },
+      { id: 'ranking', icon: 'icon_trophy', scale: 5, label: STR.moreRanking, sub: () => STR.moreSub.ranking, onTap: () => this.showTab('ranking') },
     ];
     return new MorePanel(this, { onClose: () => this.showTab('battle'), tiles });
   }
