@@ -112,7 +112,7 @@ export class ProfileModal extends Modal {
     const ped = hp(s.add.image(pcx, feet, KEY('pedestal')).setOrigin(0.5, 0.5));
     ped.setScale(208 / ped.width);
     // pés no meio do disco de mármore (o centro do disco fica no meio da imagem do pedestal)
-    this.bigPor = hp(s.add.sprite(pcx, feet - 48, 'hero0_down_0').setScale(5.8));
+    this.bigPor = hp(s.add.sprite(pcx, feet - 58, 'hero0_down_0').setScale(5.8));
     const tx = IX + 250;
     this.tx0 = tx;
     this.hName = hp(txt(s, tx, GRID_Y + 40, '', 26, TXT.gold, true).setOrigin(0, 0.5).setStroke('#1a0830', 5));
