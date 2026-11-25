@@ -18,9 +18,13 @@ import { economy } from '../systems/Economy.js';
 import { badgeSlot } from './badges.js';
 
 const W = BALANCE.screen.width;
-const X0 = 24, Y0 = 18, WW = W - 48, WH = 1214;
-const PLATE_Y = Y0 + 172, SUB_Y = Y0 + 230, STAT_Y = Y0 + 256;
-const GRID_Y = 498, CARD_W = 200, CARD_H = 246;
+// Tudo dentro da área do painel (sem cobrir a barra de cima nem a de baixo) e com margem nas laterais.
+const X0 = 36, Y0 = 40, WW = W - 72, WH = 1196;
+const IX = X0 + 40, IW = WW - 80;                  // área interna (dentro da borda dourada)
+const PLATE_Y = Y0 + 166, SUB_Y = Y0 + 220, STAT_Y = Y0 + 238;
+const STAT_W = (IW - 24) / 3, STAT_H = 98;
+const GRID_Y = 540, CARD_W = STAT_W, CARD_H = 224;
+const SLOT = 106, SLOT_STEP = (IW - SLOT) / 4;
 const ART = ['window', 'stat', 'card', 'slot', 'desc', 'pedestal'];
 const KEY = (n) => `pf_${n}`;
 
@@ -57,12 +61,12 @@ export class ProfileModal extends Modal {
     this.built = true;
     const s = this.scene;
     // janela (brasão em cima)
-    this.add(nine(s, KEY('window'), X0, Y0, WW, WH, 90, 90, 150, 90, 1.07));
+    this.add(nine(s, KEY('window'), X0, Y0, WW, WH, 90, 90, 150, 90, 1));
     // placa do nome (a mesma do ranking) e posição
     if (s.textures.exists('rk_footer')) {
       const t = s.textures.get('rk_footer').getSourceImage();
       const k = 92 / t.height;
-      this.add(s.add.nineslice(W / 2, PLATE_Y, 'rk_footer', null, (WW - 70) / k, t.height, 130, 130, 0, 0).setScale(k));
+      this.add(s.add.nineslice(W / 2, PLATE_Y, 'rk_footer', null, (WW - 60) / k, t.height, 130, 130, 0, 0).setScale(k));
     }
     this.name = s.add.text(W / 2, PLATE_Y, '', { fontFamily: TITLE_FONT, fontSize: fs(34), color: '#fff3c4' })
       .setOrigin(0.5).setStroke('#2a0c40', 7);
@@ -72,24 +76,26 @@ export class ProfileModal extends Modal {
 
     // números de todos os rankings (3 × 2)
     this.statBoxes = [0, 1, 2, 3, 4, 5].map((i) => {
-      const x = X0 + 18 + (i % 3) * 214, y = STAT_Y + Math.floor(i / 3) * 86;
-      const b = nine(s, KEY('stat'), x, y, 200, 80, 60, 60, 40, 30, 0.5);
-      const l = txt(s, x + 100, y + 33, '', 14, '#e8dcff', true).setOrigin(0.5).setStroke('#1a0830', 3);
-      const v = txt(s, x + 100, y + 56, '', 22, TXT.gold, true).setOrigin(0.5).setStroke('#1a0830', 4);
+      const x = IX + (i % 3) * (STAT_W + 12), y = STAT_Y + Math.floor(i / 3) * (STAT_H + 4);
+      // caixa alta o bastante para o rótulo ficar abaixo da joia e o número dentro da moldura
+      const b = nine(s, KEY('stat'), x, y, STAT_W, STAT_H, 60, 60, 44, 30, 0.56);
+      const l = txt(s, x + STAT_W / 2, y + 47, '', 14, '#e8dcff', true).setOrigin(0.5).setStroke('#1a0830', 3);
+      const v = txt(s, x + STAT_W / 2, y + 72, '', 21, TXT.gold, true).setOrigin(0.5).setStroke('#1a0830', 4);
       this.add([b, l, v]);
       return { l, v };
     });
-    this.sectionTitle = txt(s, X0 + 22, GRID_Y - 24, '', 20, TXT.gold, true).setOrigin(0, 0.5).setStroke('#1a0830', 4);
+    this.sectionTitle = txt(s, IX, GRID_Y - 26, '', 20, TXT.gold, true).setOrigin(0, 0.5).setStroke('#1a0830', 4);
     this.add(this.sectionTitle);
 
     // equipe: 6 cartões (retrato no medalhão, nome na faixa)
     this.team = [0, 1, 2, 3, 4, 5].map((i) => {
-      const x = X0 + 18 + (i % 3) * 214, y = GRID_Y + Math.floor(i / 3) * (CARD_H + 10);
+      const x = IX + (i % 3) * (CARD_W + 12), y = GRID_Y + Math.floor(i / 3) * (CARD_H + 32);
       const b = s.add.image(x, y, KEY('card')).setOrigin(0).setDisplaySize(CARD_W, CARD_H);
-      const glow = s.add.circle(x + CARD_W / 2, y + CARD_H * 0.36, 52, 0xffffff, 0.18);
-      const por = s.add.sprite(x + CARD_W / 2, y + CARD_H * 0.37, 'hero0_down_0').setScale(3.6);
-      const ln = txt(s, x + CARD_W / 2, y + CARD_H * 0.77, '', 12, '#f0e4ff', true).setOrigin(0.5).setStroke('#1a0830', 4);
-      const nm = txt(s, x + CARD_W / 2, y + CARD_H * 0.862, '', 17, TXT.main, true).setOrigin(0.5).setStroke('#1a0830', 5);
+      const glow = s.add.circle(x + CARD_W / 2, y + CARD_H * 0.36, 50, 0xffffff, 0.18);
+      const por = s.add.sprite(x + CARD_W / 2, y + CARD_H * 0.37, 'hero0_down_0').setScale(3.4);
+      // nome dentro da faixa; nível e poder embaixo do cartão (fora da moldura)
+      const nm = txt(s, x + CARD_W / 2, y + CARD_H * 0.86, '', 16, TXT.main, true).setOrigin(0.5).setStroke('#1a0830', 5);
+      const ln = txt(s, x + CARD_W / 2, y + CARD_H + 14, '', 14, '#f0e4ff', true).setOrigin(0.5).setStroke('#1a0830', 4);
       b.setInteractive({ useHandCursor: true });
       b.on('pointerup', () => this.showHero(i));
       this.add([b, glow, por, ln, nm]);
@@ -99,34 +105,41 @@ export class ProfileModal extends Modal {
     // herói escolhido: pedestal, retrato grande, ficha e itens
     this.heroParts = [];
     const hp = (o) => { this.heroParts.push(o); this.add(o); return o; };
-    this.backBtn = hp(new Button(s, X0 + 104, GRID_Y - 24, 168, 46, STR.profBack, () => this.showTeam(), { fontSize: 18, color: COL.card, border: COL.border }));
-    const pcx = X0 + 132, feet = GRID_Y + 176;
+    this.backBtn = hp(new Button(s, IX + 80, GRID_Y - 26, 160, 44, STR.profBack, () => this.showTeam(), { fontSize: 18, color: COL.card, border: COL.border }));
+    // pedestal e herói à esquerda; os itens começam abaixo da base do pedestal
+    const pcx = IX + 104, feet = GRID_Y + 150;
     const ped = hp(s.add.image(pcx, feet, KEY('pedestal')).setOrigin(0.5, 0.5));
-    ped.setScale(230 / ped.width);
-    this.bigPor = hp(s.add.sprite(pcx, feet - 84, 'hero0_down_0').setScale(6.4));
-    this.hName = hp(txt(s, X0 + 262, GRID_Y + 40, '', 26, TXT.gold, true).setOrigin(0, 0.5).setStroke('#1a0830', 5));
-    this.hRole = hp(txt(s, X0 + 262, GRID_Y + 78, '', 18, TXT.main, true).setOrigin(0, 0.5).setStroke('#1a0830', 4));
-    this.hLvl = hp(txt(s, X0 + 262, GRID_Y + 110, '', 18, TXT.main).setOrigin(0, 0.5).setStroke('#1a0830', 4));
-    this.hPow = hp(txt(s, X0 + 262, GRID_Y + 144, '', 21, TXT.gold, true).setOrigin(0, 0.5).setStroke('#1a0830', 4));
+    ped.setScale(208 / ped.width);
+    this.bigPor = hp(s.add.sprite(pcx, feet - 76, 'hero0_down_0').setScale(5.8));
+    const tx = IX + 226;
+    this.tx0 = tx;
+    this.hName = hp(txt(s, tx, GRID_Y + 40, '', 26, TXT.gold, true).setOrigin(0, 0.5).setStroke('#1a0830', 5));
+    this.hRole = hp(txt(s, tx, GRID_Y + 76, '', 18, TXT.main, true).setOrigin(0, 0.5).setStroke('#1a0830', 4));
+    this.hLvl = hp(txt(s, tx, GRID_Y + 106, '', 18, TXT.main).setOrigin(0, 0.5).setStroke('#1a0830', 4));
+    this.hPow = hp(txt(s, tx, GRID_Y + 138, '', 21, TXT.gold, true).setOrigin(0, 0.5).setStroke('#1a0830', 4));
     this.slots = GEAR_SLOTS.map((g, i) => {
-      const x = X0 + 18 + (i % 5) * 128, y = GRID_Y + 226 + Math.floor(i / 5) * 126;
-      const b = hp(s.add.image(x, y, KEY('slot')).setOrigin(0).setDisplaySize(118, 116));
-      const tint = hp(s.add.circle(x + 59, y + 58, 40, 0xffffff, 0));
-      const ic = hp(s.add.image(x + 59, y + 56, `item_${g.type}_empty`).setDisplaySize(84, 84));
-      const pl = hp(txt(s, x + 104, y + 100, '', 16, '#ffe28a', true).setOrigin(1, 0.5).setStroke('#12081c', 4));
+      const x = IX + (i % 5) * SLOT_STEP, y = GRID_Y + 232 + Math.floor(i / 5) * (SLOT + 8);
+      const b = hp(s.add.image(x, y, KEY('slot')).setOrigin(0).setDisplaySize(SLOT, SLOT));
+      const tint = hp(s.add.circle(x + SLOT / 2, y + SLOT / 2, SLOT * 0.33, 0xffffff, 0));
+      const ic = hp(s.add.image(x + SLOT / 2, y + SLOT / 2, `item_${g.type}_empty`).setDisplaySize(SLOT * 0.68, SLOT * 0.68));
+      const pl = hp(txt(s, x + SLOT - 16, y + SLOT - 20, '', 15, '#ffe28a', true).setOrigin(1, 0.5).setStroke('#12081c', 4));
       b.setInteractive({ useHandCursor: true });
       b.on('pointerup', () => this.showItem(g.key));
       return { g, b, tint, ic, pl };
     });
-    const iy = GRID_Y + 474;
-    hp(nine(s, KEY('desc'), X0 + 14, iy, WW - 28, 160, 150, 150, 40, 40, 0.78));
-    this.iTitle = hp(txt(s, X0 + 128, iy + 34, '', 20, TXT.main, true).setOrigin(0, 0.5).setStroke('#1a0830', 4));
-    this.iSub = hp(txt(s, X0 + 128, iy + 60, '', 15, '#d8c8f0').setOrigin(0, 0.5));
-    this.iLines = [0, 1, 2, 3, 4, 5].map((k) => hp(txt(s, X0 + 128 + (k % 2) * 228, iy + 88 + Math.floor(k / 2) * 23, '', 15, TXT.main).setOrigin(0, 0.5)));
+    // caixa do item: texto só no miolo, entre os louros
+    const iy = GRID_Y + 232 + 2 * (SLOT + 8) + 6, IH = 134;
+    hp(nine(s, KEY('desc'), IX - 12, iy, IW + 24, IH, 150, 150, 40, 40, IH / 172));
+    const tl = IX + 92;
+    this.textW = IW - 184;
+    this.iTitle = hp(txt(s, tl, iy + 30, '', 19, TXT.main, true).setOrigin(0, 0.5).setStroke('#1a0830', 4));
+    this.iSub = hp(txt(s, tl, iy + 53, '', 14, '#d8c8f0').setOrigin(0, 0.5));
+    this.iLines = [0, 1, 2, 3, 4, 5].map((k) => hp(txt(s, tl + (k % 2) * (this.textW / 2 + 6), iy + 77 + Math.floor(k / 2) * 21, '', 14, TXT.main).setOrigin(0, 0.5)));
 
-    this.msg = txt(s, W / 2, GRID_Y + 200, '', 22, '#d8c8f0').setOrigin(0.5).setAlign('center').setWordWrapWidth(WW - 100);
+    this.msg = txt(s, W / 2, GRID_Y + 200, '', 22, '#d8c8f0').setOrigin(0.5).setAlign('center').setWordWrapWidth(IW - 40);
     this.add(this.msg);
-    this.add(new Button(s, W / 2, Y0 + WH - 58, 260, 68, STR.close, () => this.close(), { fontSize: 24, color: COL.card, border: COL.border }));
+    // Fechar na borda de baixo, entre as joias dos cantos
+    this.add(new Button(s, W / 2, Y0 + WH - 44, 240, 62, STR.close, () => this.close(), { fontSize: 23, color: COL.card, border: COL.border }));
   }
 
   // id do jogador, apelido, texto da posição no ranking aberto e os selos dele
@@ -138,7 +151,7 @@ export class ProfileModal extends Modal {
   async fill(id, nick, posText, badges) {
     this.data = null;
     this.name.setText(nick || '').setX(W / 2);
-    fit(this.name, WW - 220 - badges.length * 70);
+    fit(this.name, WW - 240 - badges.length * 70);
     const bw = this.badges.set(badges, 0, 0);
     this.name.setX(W / 2 - (bw ? (bw + 12) / 2 : 0));
     this.badges.set(badges, this.name.x + this.name.displayWidth / 2 + 12, PLATE_Y);
@@ -162,7 +175,7 @@ export class ProfileModal extends Modal {
         [STR.rankBoards.colossus, data.colossus_week === wk ? fmtShort(data.colossus_week_dmg) : '0'],
         [STR.rankBoards.time, fmtDur(data.play_seconds)],
       ];
-      this.statBoxes.forEach((b, i) => { b.l.setText(vals[i][0]); fit(b.v.setText(vals[i][1]), 180); });
+      this.statBoxes.forEach((b, i) => { fit(b.l.setText(vals[i][0]), STAT_W - 50); fit(b.v.setText(vals[i][1]), STAT_W - 46); });
       this.msg.setVisible(false);
       this.showTeam();
     } catch (e) {
@@ -182,8 +195,8 @@ export class ProfileModal extends Modal {
       if (!h) return;
       t.glow.setFillStyle(RARITY_COLORS[h.q] ?? 0xffffff, 0.32);
       setHeroPortrait(t.por, { role: h.r, rarity: h.q, palette: h.pa });
-      fit(t.nm.setText(h.n).setColor(RARITY_TEXT[h.q] || TXT.main), CARD_W - 44);
-      fit(t.ln.setText(STR.profHeroLine(h.l, fmtShort(h.pw))), CARD_W - 24);
+      fit(t.nm.setText(h.n).setColor(RARITY_TEXT[h.q] || TXT.main), CARD_W * 0.66);
+      fit(t.ln.setText(STR.profHeroLine(h.l, fmtShort(h.pw))), CARD_W - 6);
     });
     if (this.data && !hs.length) this.msg.setText(STR.profNoTeam).setVisible(true);
   }
@@ -196,14 +209,14 @@ export class ProfileModal extends Modal {
     this.team.forEach((t) => t.parts.forEach((o) => o.setVisible(false)));
     this.heroParts.forEach((o) => o.setVisible(true));
     setHeroPortrait(this.bigPor, { role: h.r, rarity: h.q, palette: h.pa });
-    fit(this.hName.setText(h.n).setColor(RARITY_TEXT[h.q] || TXT.gold), WW - 280);
-    this.hRole.setText(`${RARITY_NAMES[h.q] || ''} · ${ROLES[h.r]?.name || ''}`).setColor(RARITY_TEXT[h.q] || TXT.main);
+    fit(this.hName.setText(h.n).setColor(RARITY_TEXT[h.q] || TXT.gold), IX + IW - this.tx0);
+    fit(this.hRole.setText(`${RARITY_NAMES[h.q] || ''} · ${ROLES[h.r]?.name || ''}`).setColor(RARITY_TEXT[h.q] || TXT.main), IX + IW - this.tx0);
     this.hLvl.setText(STR.profLevel(h.l, h.aw));
     this.hPow.setText(STR.profPower(fmtShort(h.pw)));
     this.slots.forEach((sl) => {
       const g = h.g?.[sl.g.key];
       const key = g ? itemIcon(showcaseItem(g)) : `item_${sl.g.type}_empty`;
-      if (this.scene.textures.exists(key)) sl.ic.setTexture(key).setDisplaySize(84, 84);
+      if (this.scene.textures.exists(key)) sl.ic.setTexture(key).setDisplaySize(SLOT * 0.68, SLOT * 0.68);
       sl.ic.setAlpha(g ? 1 : 0.3);
       // brilho da cor da raridade atrás do item
       sl.tint.setFillStyle(g ? (RARITY_COLORS[g.q] ?? 0xffffff) : 0xffffff, g ? 0.38 : 0);
@@ -223,13 +236,13 @@ export class ProfileModal extends Modal {
       return;
     }
     const it = showcaseItem(g);
-    fit(this.iTitle.setText(itemTitle(it)).setColor(RARITY_TEXT[it.rarity] || TXT.main), WW - 260);
+    fit(this.iTitle.setText(itemTitle(it)).setColor(RARITY_TEXT[it.rarity] || TXT.main), this.textW);
     const set = it.set && SETS[it.set] ? ` · ${STR.profSet(SETS[it.set].name)}` : '';
-    fit(this.iSub.setText(itemSubtitle(it) + set), WW - 260);
+    fit(this.iSub.setText(itemSubtitle(it) + set), this.textW);
     const lines = itemStatLines(it);
     this.iLines.forEach((t, k) => {
       const l = lines[k];
-      fit(t.setText(l ? l.text : '').setColor(l?.main ? TXT.gold : TXT.main), 220);
+      fit(t.setText(l ? l.text : '').setColor(l?.main ? TXT.gold : TXT.main), this.textW / 2 - 6);
     });
   }
 }
