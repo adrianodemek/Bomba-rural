@@ -1,0 +1,8 @@
+/* Fontes do tema Imperial (embutidas no jogo, funcionam sem internet).
+   "Imperial Sans" = Inter (normal = 600, bold = 800) · "Imperial Title" = Cinzel 800 (títulos). Licença OFL. */
+@font-face { font-family: 'Imperial Sans'; font-weight: normal; font-style: normal; font-display: swap;
+  src: url(inter-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Imperial Sans'; font-weight: bold; font-style: normal; font-display: swap;
+  src: url(inter-latin-800-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Imperial Title'; font-weight: normal; font-style: normal; font-display: swap;
+  src: url(cinzel-latin-800-normal.woff2) format('woff2'); }
