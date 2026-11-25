@@ -7,6 +7,7 @@ let profile = null;
 let pending = null;      // último save esperando envio
 let lastPush = 0;
 let timer = null;
+let lastShowcase = null;   // última vitrine enviada (evita reenviar igual)
 
 export function sb() {
   if (!client && window.supabase?.createClient) {
@@ -120,7 +121,15 @@ export const Cloud = {
         user_id: user.id, data: saveObj, save_version: saveObj.version || 0, client_saved_at: saveObj.savedAt || Date.now(),
       });
       if (profile && stats) {
-        await c.from('profiles').update({ stages_cleared: stats.stages, best_power: stats.power }).eq('id', user.id);
+        const row = {
+          stages_cleared: stats.stages, best_power: stats.power, play_seconds: stats.play, abyss_best: stats.abyss,
+          max_hero_level: stats.heroLvl, colossus_week: stats.colWeek, colossus_week_dmg: stats.colDmg, stars_total: stats.stars,
+        };
+        // vitrine (equipe e itens) só vai quando muda
+        const sc = JSON.stringify(stats.showcase || null);
+        if (sc !== lastShowcase) { row.showcase = stats.showcase; }
+        const r = await c.from('profiles').update(row).eq('id', user.id);
+        if (!r.error && row.showcase !== undefined) lastShowcase = sc;
       }
     } catch (e) {
       pending = pending || { saveObj, stats };   // sem rede: tenta de novo no próximo save

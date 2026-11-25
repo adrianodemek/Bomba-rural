@@ -16,6 +16,7 @@ import { TAB_UNLOCK, markTabSeen } from './systems/Journey.js';
 import { todayKey } from './systems/Goals.js';
 import { Cloud } from './systems/Cloud.js';
 import { teamPower } from './systems/Difficulty.js';
+import { buildShowcase } from './systems/Showcase.js';
 import { showAuthGate, GUEST_KEY } from './ui/AuthGate.js';
 
 // Modo de teste do chefe (Configurações → Testar o chefe): joga numa CÓPIA do save, na fase do chefe.
@@ -101,12 +102,26 @@ waitForFonts().then(accountStep).then(() => {
   economy.ensureSeason();
   ensurePass();   // Passe de Temporada: vira o mês (entrega o que ficou para trás)
   SaveSystem.start(economy);
+  // Tempo de jogo (só com a tela aberta e visível): ranking "Tempo online".
+  if (!testBoss) {
+    setInterval(() => { if (document.visibilityState === 'visible') economy.stats.playSec = (economy.stats.playSec || 0) + 10; }, 10000);
+  }
   if (Cloud.online && !testBoss) {
     // Ranking: fases diferentes já vencidas (todas as dificuldades) e o melhor poder de equipe visto.
-    const stats = () => ({
-      stages: economy.progress.reduce((t, d) => t + d.reduce((a, b) => a + (b || 0), 0), 0),
-      power: (() => { try { return Math.max(0, Math.round(teamPower() || 0)); } catch (e) { return 0; } })(),
-    });
+    const stats = () => {
+      const st = economy.stats;
+      return {
+        stages: economy.progress.reduce((t, d) => t + d.reduce((a, b) => a + (b || 0), 0), 0),
+        power: (() => { try { return Math.max(0, Math.round(teamPower() || 0)); } catch (e) { return 0; } })(),
+        play: Math.floor(st.playSec || 0),
+        abyss: Math.floor(st.endlessBest || 0),
+        heroLvl: economy.heroes.reduce((m, h) => Math.max(m, h.level || 0), 0),
+        colWeek: Math.floor(st.colossusWeek || 0),
+        colDmg: Math.floor(st.colossusWeekBest || 0),
+        stars: Object.values(economy.stars || {}).reduce((a, b) => a + (b || 0), 0),
+        showcase: buildShowcase(),
+      };
+    };
     SaveSystem.onSaved = (data) => Cloud.queue(data, stats());
     const now = () => { SaveSystem.save(economy); Cloud.flush(); };
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') now(); });

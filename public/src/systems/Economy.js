@@ -32,6 +32,7 @@ function emptyStats() {
     sealedRevealed: 0, summons: 0, chestsOpened: 0, endlessDepths: 0, endlessBest: 0,
     expeditions: 0, colossusRuns: 0, colossusBestEver: 0, colossusWeek: 0, colossusWeekBest: 0,
     seasonKey: 0, seasonBest: 0,
+    playSec: 0,                      // tempo de jogo com a tela aberta (ranking "Tempo online")
   };
 }
 
