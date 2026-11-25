@@ -72,7 +72,7 @@ export class ProfileModal extends Modal {
       .setOrigin(0.5).setStroke('#2a0c40', 7);
     this.sub = txt(s, W / 2, SUB_Y, '', 18, '#e8d8ff').setOrigin(0.5).setStroke('#1a0830', 4);
     this.add([this.name, this.sub]);
-    this.badges = badgeSlot(s, this, 36);
+    this.badges = badgeSlot(s, this, 46);
 
     // números de todos os rankings (3 × 2)
     this.statBoxes = [0, 1, 2, 3, 4, 5].map((i) => {
@@ -151,7 +151,7 @@ export class ProfileModal extends Modal {
   async fill(id, nick, posText, badges) {
     this.data = null;
     this.name.setText(nick || '').setX(W / 2);
-    fit(this.name, WW - 240 - badges.length * 70);
+    fit(this.name, WW - 240 - badges.length * 100);
     const bw = this.badges.set(badges, 0, 0);
     this.name.setX(W / 2 - (bw ? (bw + 12) / 2 : 0));
     this.badges.set(badges, this.name.x + this.name.displayWidth / 2 + 12, PLATE_Y);
