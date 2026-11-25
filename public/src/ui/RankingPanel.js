@@ -13,6 +13,7 @@ import { SaveSystem } from '../systems/SaveSystem.js';
 import { economy } from '../systems/Economy.js';
 import { GUEST_KEY } from './AuthGate.js';
 import { ProfileModal, fmtDur } from './ProfileModal.js';
+import { BADGE_ART, badgeKey, badgesOf, badgeSlot } from './badges.js';
 
 const W = BALANCE.screen.width;
 const ART = ['bg', 'banner', 'podium', 'medal_gold', 'medal_silver', 'medal_bronze', 'crown', 'row', 'row_me', 'footer'];
@@ -47,6 +48,8 @@ export class RankingPanel extends Panel {
   ensureArt(cb) {
     const s = this.scene;
     const missing = ART.filter((n) => !s.textures.exists(KEY(n)));
+    // selos: tenta uma vez só (podem ainda não existir)
+    if (!this.triedBadges) { this.triedBadges = true; BADGE_ART.filter((n) => !s.textures.exists(badgeKey(n))).forEach((n) => missing.push(n)); }
     if (!missing.length) { cb(); return; }
     missing.forEach((n) => s.load.image(KEY(n), `assets/ui/ranking/${n}.${n === 'bg' ? 'jpg' : 'png'}`));
     s.load.once('complete', () => {
@@ -115,6 +118,7 @@ export class RankingPanel extends Panel {
       plate.setInteractive({ useHandCursor: true });
       plate.on('pointerup', () => this.openProfile(st.place - 1));
       this.add([medal, num, plate, name, stg]);
+      const badges = badgeSlot(s, this, 28);
       if (st.place === 1) {
         const crown = s.add.image(x, medal.y - medal.displayHeight - 8, KEY('crown')).setOrigin(0.5, 1);
         crown.setScale(84 / crown.width);
@@ -122,7 +126,7 @@ export class RankingPanel extends Panel {
         s.tweens.add({ targets: crown, y: crown.y - 8, angle: { from: -4, to: 4 }, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
         s.tweens.add({ targets: medal, scale: medal.scale * 1.05, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       }
-      return { medal, num, plate, name, stg, place: st.place };
+      return { medal, num, plate, name, stg, badges, frontY, x, place: st.place };
     });
 
     // lista do 4º ao 12º (moldura esticada só no meio: as pontas com a joia ficam do tamanho certo)
@@ -137,7 +141,7 @@ export class RankingPanel extends Panel {
       const pw = txt(s, 640, y, '›', 26, '#e8d8ff', true).setOrigin(0.5).setStroke('#2a0c40', 4);
       [fr, frMe].forEach((f) => { f.setInteractive({ useHandCursor: true }); f.on('pointerup', () => this.openProfile(i + 3)); });
       this.add([fr, frMe, pos, name, st, pw]);
-      this.rows.push({ fr, frMe, pos, name, st, pw });
+      this.rows.push({ fr, frMe, pos, name, st, pw, y, badges: badgeSlot(s, this, 30) });
     }
 
     // placa da sua posição
@@ -165,7 +169,7 @@ export class RankingPanel extends Panel {
   openProfile(i) {
     const d = this.entries?.[i];
     if (!d) return;
-    this.profile.show(d.id, d.nickname, STR.profPos(i + 1, STR.rankBoards[this.board.id]));
+    this.profile.show(d.id, d.nickname, STR.profPos(i + 1, STR.rankBoards[this.board.id]), badgesOf(d));
   }
 
   setPodium(list, meId) {
@@ -176,6 +180,7 @@ export class RankingPanel extends Panel {
       p.plate.setAlpha(d ? 1 : 0.6);
       fit(p.name.setText(d ? d.nickname : '—').setColor(d && d.id === meId ? '#ffe28a' : '#ffffff'), 150);
       fit(p.stg.setText(d ? this.board.show(d[this.board.col]) : ''), 150);
+      p.badges.set(badgesOf(d), p.x, p.frontY - 42, 0.5);
     });
   }
 
@@ -187,9 +192,11 @@ export class RankingPanel extends Panel {
       r.fr.setVisible(vis && !mine);
       r.frMe.setVisible(mine);
       [r.pos, r.name, r.st, r.pw].forEach((o) => o.setVisible(vis));
-      if (!vis) return;
+      const bl = vis ? badgesOf(d) : [];
+      if (!vis) { r.badges.set([], 0, 0); return; }
       r.pos.setText(String(i + 4));
-      fit(r.name.setText(d.nickname).setColor(mine ? '#ffe28a' : TXT.main), 330);
+      fit(r.name.setText(d.nickname).setColor(mine ? '#ffe28a' : TXT.main), 330 - bl.length * 52);
+      r.badges.set(bl, r.name.x + r.name.displayWidth + 10, r.y);
       fit(r.st.setText(this.board.show(d[this.board.col])), 200);
     });
   }
@@ -212,7 +219,7 @@ export class RankingPanel extends Panel {
       const c = sb();
       const B = this.board;
       const wk = economy.weekIndex();
-      let q = c.from('profiles').select('id, nickname, stages_cleared, best_power, play_seconds, abyss_best, max_hero_level, colossus_week, colossus_week_dmg');
+      let q = c.from('profiles').select('id, nickname, stages_cleared, best_power, play_seconds, abyss_best, max_hero_level, colossus_week, colossus_week_dmg, premium_until, pass_elite_season');
       if (B.week) q = q.eq('colossus_week', wk).gt(B.col, 0);
       q = q.order(B.col, { ascending: false });
       if (B.col !== 'stages_cleared') q = q.order('stages_cleared', { ascending: false });
@@ -223,7 +230,7 @@ export class RankingPanel extends Panel {
       const meId = Cloud.user?.id;
       let me = data.find((p) => p.id === meId);
       if (!me && meId) {
-        const r = await c.from('profiles').select('id, nickname, stages_cleared, best_power, play_seconds, abyss_best, max_hero_level, colossus_week, colossus_week_dmg')
+        const r = await c.from('profiles').select('id, nickname, stages_cleared, best_power, play_seconds, abyss_best, max_hero_level, colossus_week, colossus_week_dmg, premium_until, pass_elite_season')
           .eq('id', meId).maybeSingle();
         me = r.data;
       }

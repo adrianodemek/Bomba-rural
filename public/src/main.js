@@ -120,6 +120,8 @@ waitForFonts().then(accountStep).then(() => {
         colDmg: Math.floor(st.colossusWeekBest || 0),
         stars: Object.values(economy.stars || {}).reduce((a, b) => a + (b || 0), 0),
         showcase: buildShowcase(),
+        premiumUntil: Math.floor(economy.premium?.until || 0),
+        eliteSeason: economy.pass?.elite ? (economy.pass.key || 0) : 0,
       };
     };
     SaveSystem.onSaved = (data) => Cloud.queue(data, stats());

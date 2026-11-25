@@ -124,6 +124,7 @@ export const Cloud = {
         const row = {
           stages_cleared: stats.stages, best_power: stats.power, play_seconds: stats.play, abyss_best: stats.abyss,
           max_hero_level: stats.heroLvl, colossus_week: stats.colWeek, colossus_week_dmg: stats.colDmg, stars_total: stats.stars,
+          premium_until: stats.premiumUntil || 0, pass_elite_season: stats.eliteSeason || 0,
         };
         // vitrine (equipe e itens) só vai quando muda
         const sc = JSON.stringify(stats.showcase || null);

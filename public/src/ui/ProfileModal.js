@@ -14,6 +14,7 @@ import { itemTitle, itemSubtitle, itemStatLines, itemIcon } from './itemText.js'
 import { showcaseItem } from '../systems/Showcase.js';
 import { sb } from '../systems/Cloud.js';
 import { economy } from '../systems/Economy.js';
+import { badgeSlot } from './badges.js';
 
 const W = BALANCE.screen.width;
 const X0 = 24, Y0 = 70, WW = W - 48, WH = 1130;
@@ -35,6 +36,7 @@ export class ProfileModal extends Modal {
       .setOrigin(0.5).setStroke('#2a0c40', 7);
     this.sub = txt(s, W / 2, Y0 + 124, '', 18, '#e8d8ff').setOrigin(0.5);
     this.add([this.name, this.sub]);
+    this.badges = badgeSlot(s, this, 36);
 
     // números de todos os rankings (3 × 2)
     this.statBoxes = [0, 1, 2, 3, 4, 5].map((i) => {
@@ -93,12 +95,15 @@ export class ProfileModal extends Modal {
   }
 
   // id do jogador e texto da posição no ranking aberto
-  async show(id, nick, posText) {
+  async show(id, nick, posText, badges = []) {
     this.open();
     this.data = null;
     this.setPlate();
     this.name.setText(nick || '');
-    fit(this.name, WW - 220);
+    fit(this.name, WW - 220 - badges.length * 70);
+    const bw = this.badges.set(badges, 0, 0);
+    this.name.setX(W / 2 - (bw ? (bw + 12) / 2 : 0));
+    this.badges.set(badges, this.name.x + this.name.displayWidth / 2 + 12, this.plateY);
     this.sub.setText(posText || '');
     this.statBoxes.forEach((b) => { b.l.setText(''); b.v.setText(''); });
     this.showTeam();
