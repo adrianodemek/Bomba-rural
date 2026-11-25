@@ -93,25 +93,27 @@ export class ProfileModal extends Modal {
       const b = s.add.image(x, y, KEY('card')).setOrigin(0).setDisplaySize(CARD_W, CARD_H);
       const glow = s.add.circle(x + CARD_W / 2, y + CARD_H * 0.36, 50, 0xffffff, 0.18);
       const por = s.add.sprite(x + CARD_W / 2, y + CARD_H * 0.37, 'hero0_down_0').setScale(3.4);
-      // nome dentro da faixa; nível e poder embaixo do cartão (fora da moldura)
-      const nm = txt(s, x + CARD_W / 2, y + CARD_H * 0.86, '', 16, TXT.main, true).setOrigin(0.5).setStroke('#1a0830', 5);
-      const ln = txt(s, x + CARD_W / 2, y + CARD_H + 14, '', 14, '#f0e4ff', true).setOrigin(0.5).setStroke('#1a0830', 4);
+      // nome no centro da faixa (0,816 da altura do cartão); embaixo: nível à esquerda e poder à direita
+      const nm = txt(s, x + CARD_W / 2, y + CARD_H * 0.816, '', 15, TXT.main, true).setOrigin(0.5).setStroke('#1a0830', 5);
+      const ln = txt(s, x + 6, y + CARD_H + 15, '', 14, '#f0e4ff', true).setOrigin(0, 0.5).setStroke('#1a0830', 4);
+      const pw = txt(s, x + CARD_W - 6, y + CARD_H + 15, '', 14, TXT.gold, true).setOrigin(1, 0.5).setStroke('#1a0830', 4);
       b.setInteractive({ useHandCursor: true });
       b.on('pointerup', () => this.showHero(i));
-      this.add([b, glow, por, ln, nm]);
-      return { parts: [b, glow, por, ln, nm], b, glow, por, ln, nm };
+      this.add([b, glow, por, ln, pw, nm]);
+      return { parts: [b, glow, por, ln, pw, nm], b, glow, por, ln, pw, nm };
     });
 
     // herói escolhido: pedestal, retrato grande, ficha e itens
     this.heroParts = [];
     const hp = (o) => { this.heroParts.push(o); this.add(o); return o; };
-    this.backBtn = hp(new Button(s, IX + 80, GRID_Y - 26, 160, 44, STR.profBack, () => this.showTeam(), { fontSize: 18, color: COL.card, border: COL.border }));
+    this.backBtn = hp(new Button(s, IX + 104, GRID_Y - 26, 160, 44, STR.profBack, () => this.showTeam(), { fontSize: 18, color: COL.card, border: COL.border }));
     // pedestal e herói à esquerda; os itens começam abaixo da base do pedestal
-    const pcx = IX + 104, feet = GRID_Y + 150;
+    const pcx = IX + 128, feet = GRID_Y + 150;
     const ped = hp(s.add.image(pcx, feet, KEY('pedestal')).setOrigin(0.5, 0.5));
     ped.setScale(208 / ped.width);
-    this.bigPor = hp(s.add.sprite(pcx, feet - 76, 'hero0_down_0').setScale(5.8));
-    const tx = IX + 226;
+    // pés no meio do disco de mármore (o centro do disco fica no meio da imagem do pedestal)
+    this.bigPor = hp(s.add.sprite(pcx, feet - 48, 'hero0_down_0').setScale(5.8));
+    const tx = IX + 250;
     this.tx0 = tx;
     this.hName = hp(txt(s, tx, GRID_Y + 40, '', 26, TXT.gold, true).setOrigin(0, 0.5).setStroke('#1a0830', 5));
     this.hRole = hp(txt(s, tx, GRID_Y + 76, '', 18, TXT.main, true).setOrigin(0, 0.5).setStroke('#1a0830', 4));
@@ -195,8 +197,9 @@ export class ProfileModal extends Modal {
       if (!h) return;
       t.glow.setFillStyle(RARITY_COLORS[h.q] ?? 0xffffff, 0.32);
       setHeroPortrait(t.por, { role: h.r, rarity: h.q, palette: h.pa });
-      fit(t.nm.setText(h.n).setColor(RARITY_TEXT[h.q] || TXT.main), CARD_W * 0.66);
-      fit(t.ln.setText(STR.profHeroLine(h.l, fmtShort(h.pw))), CARD_W - 6);
+      fit(t.nm.setText(h.n).setColor(RARITY_TEXT[h.q] || TXT.main), CARD_W * 0.62);
+      fit(t.ln.setText(STR.profLevelShort(h.l)), CARD_W / 2 - 8);
+      fit(t.pw.setText(fmtShort(h.pw)), CARD_W / 2 - 8);
     });
     if (this.data && !hs.length) this.msg.setText(STR.profNoTeam).setVisible(true);
   }

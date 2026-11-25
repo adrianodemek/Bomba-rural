@@ -118,7 +118,7 @@ export class RankingPanel extends Panel {
       plate.setInteractive({ useHandCursor: true });
       plate.on('pointerup', () => this.openProfile(st.place - 1));
       this.add([medal, num, plate, name, stg]);
-      const badges = badgeSlot(s, this, 34);
+      const badges = badgeSlot(s, this, 30);
       if (st.place === 1) {
         const crown = s.add.image(x, medal.y - medal.displayHeight - 8, KEY('crown')).setOrigin(0.5, 1);
         crown.setScale(84 / crown.width);
@@ -141,7 +141,7 @@ export class RankingPanel extends Panel {
       const pw = txt(s, 640, y, '›', 26, '#e8d8ff', true).setOrigin(0.5).setStroke('#2a0c40', 4);
       [fr, frMe].forEach((f) => { f.setInteractive({ useHandCursor: true }); f.on('pointerup', () => this.openProfile(i + 3)); });
       this.add([fr, frMe, pos, name, st, pw]);
-      this.rows.push({ fr, frMe, pos, name, st, pw, y, badges: badgeSlot(s, this, 38) });
+      this.rows.push({ fr, frMe, pos, name, st, pw, y, badges: badgeSlot(s, this, 30) });   // cabe dentro da linha
     }
 
     // placa da sua posição
@@ -180,7 +180,7 @@ export class RankingPanel extends Panel {
       p.plate.setAlpha(d ? 1 : 0.6);
       fit(p.name.setText(d ? d.nickname : '—').setColor(d && d.id === meId ? '#ffe28a' : '#ffffff'), 150);
       fit(p.stg.setText(d ? this.board.show(d[this.board.col]) : ''), 150);
-      p.badges.set(badgesOf(d), p.x, p.frontY - 46, 0.5);
+      p.badges.set(badgesOf(d), p.x, p.frontY - 50, 0.5);
     });
   }
 
@@ -195,7 +195,7 @@ export class RankingPanel extends Panel {
       const bl = vis ? badgesOf(d) : [];
       if (!vis) { r.badges.set([], 0, 0); return; }
       r.pos.setText(String(i + 4));
-      fit(r.name.setText(d.nickname).setColor(mine ? '#ffe28a' : TXT.main), 330 - bl.length * 84);
+      fit(r.name.setText(d.nickname).setColor(mine ? '#ffe28a' : TXT.main), 330 - bl.length * 68);
       r.badges.set(bl, r.name.x + r.name.displayWidth + 10, r.y);
       fit(r.st.setText(this.board.show(d[this.board.col])), 200);
     });

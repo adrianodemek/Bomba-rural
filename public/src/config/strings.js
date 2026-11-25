@@ -728,6 +728,7 @@ export const STR = {
   profHeroLine: (lvl, pw) => `Nível ${lvl} · Poder ${pw}`,
   profLevel: (lvl, aw) => `Nível ${lvl}${aw ? ` · Despertar ${aw}` : ''}`,
   profPower: (pw) => `Poder ${pw}`,
+  profLevelShort: (lvl) => `Nível ${lvl}`,
   profNoItem: 'Toque num item para ver os atributos',
   profNoTeam: 'Este jogador ainda não mostrou a equipe.',
   profSet: (name) => `Conjunto ${name}`,
