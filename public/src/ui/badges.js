@@ -1,8 +1,6 @@
-// Selos dos jogadores (arte do ChatGPT em assets/ui/ranking/badge_*.png): Passe do Minerador (VIP) e
-// Passe de Temporada Elite. Aparecem ao lado do nome no Ranking e no perfil, com um brilho leve pulsando.
-import { economy } from '../systems/Economy.js';
-
-export const BADGE_ART = ['badge_vip', 'badge_elite'];
+// Selo VIP (arte do ChatGPT em assets/ui/ranking/badge_vip.png): jogador com o Passe do Minerador ativo.
+// Aparece ao lado do nome no Ranking e no perfil, com um brilho leve pulsando. O Passe de Temporada não dá selo.
+export const BADGE_ART = ['badge_vip'];
 export const badgeKey = (n) => `rk_${n}`;
 
 // Quais selos este jogador (linha da tabela profiles) tem agora.
@@ -10,7 +8,6 @@ export function badgesOf(p) {
   if (!p) return [];
   const out = [];
   if ((p.premium_until || 0) > Date.now()) out.push('badge_vip');
-  if (p.pass_elite_season && p.pass_elite_season === economy.seasonIndex()) out.push('badge_elite');
   return out;
 }
 
