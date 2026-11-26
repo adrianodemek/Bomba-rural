@@ -20,19 +20,19 @@ export const TREE = [
   N('e11', 'Mina de Ouro', 'goldPct', 0.1, 10, 190, 320, ['e10', 'e7'], 2e7, 2),
 
   // ---------- Esquadrão (direita) ----------
-  N('s1', 'Comandante I', 'attackPct', 0.02, 1, 840, 640, ['start'], 15000),
+  N('s1', 'Comandante I', 'attackPct', 0.02, 1, 840, 640, ['start'], 30000),
   N('s2', 'Fôlego', 'energyPct', 0.05, 5, 980, 600, ['s1', 's3'], 3000, 2.2),
   N('s3', 'Cápsula Turbo', 'recoveryPct', 0.1, 5, 900, 500, ['start', 's1'], 4000, 2.2),
-  N('s4', 'Comandante II', 'attackPct', 0.02, 1, 1120, 560, ['s2'], 5e5),
+  N('s4', 'Comandante II', 'attackPct', 0.02, 1, 1120, 560, ['s2'], 1e6),
   N('s5', 'Pernas Leves', 'speedPct', 0.03, 5, 1040, 440, ['s3', 's2'], 2e4, 2.3),
   N('s6', 'Alojamento', 'heroSlots', 5, 4, 900, 370, ['s3'], 3e4, 3),
-  N('s7', 'Comandante III', 'attackPct', 0.02, 1, 1260, 520, ['s4'], 1e7),
+  N('s7', 'Comandante III', 'attackPct', 0.02, 1, 1260, 520, ['s4'], 2e7),
   N('s8', 'Fôlego II', 'energyPct', 0.06, 5, 1180, 420, ['s4', 's5'], 3e5, 2.3),
-  N('s9', 'Comandante IV', 'attackPct', 0.02, 1, 1340, 410, ['s7', 's8'], 3e8),
+  N('s9', 'Comandante IV', 'attackPct', 0.02, 1, 1340, 410, ['s7', 's8'], 6e8),
   N('s10', 'Cápsula Turbo II', 'recoveryPct', 0.12, 5, 1040, 310, ['s5', 's6'], 5e5, 2.3),
-  N('s11', 'Comandante V', 'attackPct', 0.02, 1, 1300, 290, ['s9'], 6e9),
+  N('s11', 'Comandante V', 'attackPct', 0.02, 1, 1300, 290, ['s9'], 1.2e10),
   N('s12', 'Pernas Leves II', 'speedPct', 0.04, 5, 1170, 270, ['s10', 's8'], 8e6, 2.3),
-  N('s13', 'Comandante VI', 'attackPct', 0.02, 1, 1200, 150, ['s11', 's12'], 1.5e11),
+  N('s13', 'Comandante VI', 'attackPct', 0.02, 1, 1200, 150, ['s11', 's12'], 3e11),
 
   // ---------- Combate (baixo) ----------
   N('c1', 'Pólvora Fina', 'attackPct', 0.03, 10, 700, 850, ['start'], 400, 2),
