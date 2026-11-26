@@ -66,7 +66,8 @@ export class ItemPicker extends Modal {
   }
 
   itemsForSlot() {
-    return economy.items.filter((it) => it.slot === this.type && it.uid !== this.hero.gear[this.slot])
+    return economy.items.filter((it) => it.slot === this.type && it.uid !== this.hero.gear[this.slot]
+      && (!it.cls || it.cls === this.hero.role))   // exclusivos: só da classe do herói
       .sort((a, b) => itemPower(b) - itemPower(a));
   }
 

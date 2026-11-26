@@ -12,7 +12,7 @@ import {
 import { Button } from './Button.js';
 import { Modal, txt, fit, Stars } from './widgets.js';
 import { fmt } from './format.js';
-import { itemTitle, itemSubtitle, itemStatLines, setBonusLines, itemIcon } from './itemText.js';
+import { itemTitle, itemSubtitle, itemStatLines, setBonusLines, itemIcon, itemClass, canWear } from './itemText.js';
 import { compareToEquipped } from '../systems/Items.js';
 import { cmpLong, cmpColor, CMP_TINT } from './compareText.js';
 import { frame } from './skin.js';
@@ -144,8 +144,12 @@ export class ItemDetail extends Modal {
     this.refreshCompare(it);
     const owner0 = economy.equippedBy(it.uid);
     const canEquip = this.equipHero && (!owner0 || owner0.uid !== this.equipHero.uid);
+    const wear = canWear(it, this.equipHero);
     this.equipBtn.setVisible(!!canEquip);
-    if (canEquip) fit(this.equipBtn.setLabel(STR.equipOn(this.equipHero.name)).label, W - 180);
+    if (canEquip) {
+      fit(this.equipBtn.setLabel(wear ? STR.equipOn(this.equipHero.name) : STR.exOnly(itemClass(it).name)).label, W - 180);
+      this.equipBtn.setEnabled(wear);
+    }
     const left = economy.sealed.length;
     const showAll = this.fromReveal && !canEquip && left > 0 && premiumActive();
     this.revealAllBtn.setVisible(showAll);
@@ -153,7 +157,7 @@ export class ItemDetail extends Modal {
     this.icon.setTexture(itemIcon(it));
     this.glow.setFillStyle(RARITY_COLORS[it.rarity], it.rarity > 0 ? 0.3 : 0.12);
     fit(this.title.setText(itemTitle(it)), W - 140);
-    this.sub.setText(itemSubtitle(it)).setColor(RARITY_TEXT[it.rarity]);
+    fit(this.sub.setText(itemSubtitle(it)).setColor(RARITY_TEXT[it.rarity]), W - 140);
     this.stars.setCount(it.stars);
 
     const lines = itemStatLines(it);

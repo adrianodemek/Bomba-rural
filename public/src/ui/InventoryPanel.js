@@ -1,4 +1,5 @@
 // Aba Inventário: boneco do herói com os 10 espaços de equipamento + bolsa de itens em páginas.
+import { EX_CLASSES } from '../data/exclusive.js';
 import { BALANCE } from '../config/balance.js';
 import { COL, TXT } from '../config/theme.js';
 import { STR } from '../config/strings.js';
@@ -102,10 +103,12 @@ export class InventoryPanel extends Panel {
       const owner = frame(s, x + CELL - 12, y + 12, 12, 12, 0xffffff).setStrokeStyle(2, 0x120a1e);
       const lock = s.add.image(x + 12, y + CELL - 12, 'icon_lock').setScale(2);
       const arrow = s.add.triangle(x + CELL - 14, y + CELL - 14, 0, 14, 7, 0, 14, 14, 0x7fe07a).setStrokeStyle(2, 0x120a1e);
+      // Losango na cor da classe: equipamento exclusivo.
+      const ex = s.add.rectangle(x + CELL / 2, y + CELL - 9, 11, 11, 0xffffff).setAngle(45).setStrokeStyle(2, 0x120a1e);
       bg.setInteractive({ useHandCursor: true });
-      const cell = { bg, icon, plus, owner, lock, arrow, item: null };
+      const cell = { bg, icon, plus, owner, lock, arrow, ex, item: null };
       bg.on('pointerup', () => { if (cell.item) onItem(cell.item, this.hero()); });
-      this.add([bg, icon, plus, owner, lock, arrow]);
+      this.add([bg, icon, plus, owner, lock, arrow, ex]);
       this.cells.push(cell);
     }
     const by = BAG_Y + BAG_ROWS * (CELL + 6) + 36;
@@ -197,6 +200,8 @@ export class InventoryPanel extends Panel {
       const owner = it ? economy.equippedBy(it.uid) : null;
       c.owner.setVisible(!!owner);
       c.lock.setVisible(!!it && it.locked);
+      c.ex.setVisible(!!it?.cls);
+      if (it?.cls) c.ex.setFillStyle(Phaser.Display.Color.HexStringToColor(EX_CLASSES[it.cls].color).color);
       c.bg.setStrokeStyle(3, it && it.rarity > 0 ? RARITY_COLORS[it.rarity] : COL.border);
       const cmp = it && h ? compareToEquipped(it, h) : null;
       const v = cmp?.verdict;

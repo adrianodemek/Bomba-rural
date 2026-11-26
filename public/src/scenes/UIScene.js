@@ -1563,8 +1563,9 @@ export class UIScene extends Phaser.Scene {
 
   onStageClear({
     gold, crystals, cages, keys, chest, sealed, essence, newRecord, unlockedWorld, unlockedDifficulty,
-    stars, starsGained, milestones,
+    stars, starsGained, milestones, exSealed,
   }) {
+    if (exSealed) this.time.delayedCall(2600, () => this.toast.show(STR.exSealedGot, 2800));
     this.bannerGold.setText(STR.goldGained(fmt(gold)));
     const showStars = !!stars;
     this.bannerStars.forEach((img, i) => {

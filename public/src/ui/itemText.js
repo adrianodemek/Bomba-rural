@@ -2,6 +2,7 @@
 import { STR } from '../config/strings.js';
 import { RARITY_NAMES } from '../data/heroes.js';
 import { slotById, SETS } from '../data/items.js';
+import { EX_CLASSES, EX_ART, exName } from '../data/exclusive.js';
 import { itemStats, itemMain } from '../systems/Items.js';
 
 const PCT = new Set(['luck', 'critChance', 'critDamage', 'penetration', 'cooldown']);
@@ -12,12 +13,17 @@ export function attrText(attr, v) {
 }
 
 export function itemTitle(item) {
-  return STR.itemName(slotById(item.slot).name, item.plus);
+  return STR.itemName(item.cls ? exName(item.cls, item.slot, item.rarity) : slotById(item.slot).name, item.plus);
 }
 
 export function itemSubtitle(item) {
+  if (item.cls) return STR.exLine(RARITY_NAMES[item.rarity], EX_CLASSES[item.cls].name, item.ilvl);
   return STR.itemLine(RARITY_NAMES[item.rarity], item.ilvl);
 }
+
+// Classe dona do item exclusivo (null nos itens comuns) e se o herói pode usar.
+export const itemClass = (item) => (item?.cls ? EX_CLASSES[item.cls] : null);
+export const canWear = (item, hero) => !item?.cls || !hero || item.cls === hero.role;
 
 // [{ text, main }] com o principal primeiro.
 export function itemStatLines(item) {
@@ -38,6 +44,8 @@ export function setBonusLines(setId) {
   return [STR.setBonus(2, bonusText(s.bonus2)), STR.setBonus(4, bonusText(s.bonus4))];
 }
 
+// Exclusivo com arte pronta: figura própria (ex_<classe>_<espaço>_<raridade>); senão o ícone comum do espaço.
 export function itemIcon(item) {
+  if (item.cls && EX_ART.includes(`${item.cls}_${item.rarity}`)) return `ex_${item.cls}_${item.slot}_${item.rarity}`;
   return `item_${item.slot}_${item.rarity}`;
 }

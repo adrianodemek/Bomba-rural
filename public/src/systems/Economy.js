@@ -9,6 +9,7 @@ import { MISSIONS, ACHIEVEMENTS } from '../data/goals.js';
 import { parseGem } from '../data/gems.js';
 import { WORLDS, DIFFICULTIES, COLOSSI } from '../data/worlds.js';
 import { SLOT_IDS, SET_IDS, GEAR_KEYS, gearSlotByKey } from '../data/items.js';
+import { EX_CLASS_IDS } from '../data/exclusive.js';
 import { ABILITY_IDS, ABILITIES, abilitiesForRole, STARTER_ABILITIES } from '../data/abilities.js';
 
 // Duas habilidades diferentes do papel (sorteadas).
@@ -160,6 +161,7 @@ export class Economy extends Phaser.Events.EventEmitter {
   // Equipa no espaço "key" (padrão: o tipo do item), tirando de quem estiver usando.
   equip(hero, item, key = item.slot) {
     if (gearSlotByKey(key)?.type !== item.slot) return;
+    if (item.cls && item.cls !== hero.role) return;   // exclusivo de outra classe
     const before = computeStats(hero, 0, this.gearOf(hero)).maxEnergy;
     const owner = this.equippedBy(item.uid);
     if (owner) {
@@ -275,9 +277,10 @@ export class Economy extends Phaser.Events.EventEmitter {
     return treeEffectSum(this.treeRanks, type);
   }
 
-  addSealed(n, ilvl, world) {
+  // ex = lacrado de equipamento exclusivo de classe (a classe é sorteada ao revelar).
+  addSealed(n, ilvl, world, ex = false) {
     const diff = this.mode === 'endless' ? 0 : Math.min(this.difficulty, Math.floor((ilvl - 1) / BALANCE.items.levelPerDifficulty));
-    for (let i = 0; i < n; i++) this.sealed.push({ ilvl, world, diff });
+    for (let i = 0; i < n; i++) this.sealed.push(ex ? { ilvl, world, diff, ex: true } : { ilvl, world, diff });
     this.emit('items');
   }
 
@@ -676,7 +679,8 @@ export class Economy extends Phaser.Events.EventEmitter {
         affixes: (Array.isArray(it.affixes) ? it.affixes : [])
           .filter((a) => a && BALANCE.attributes.ids.includes(a.attr))
           .map((a) => ({ attr: a.attr, roll: Phaser.Math.Clamp(num(a.roll, 0.85), 0.7, 1) })),
-        set: SET_IDS.includes(it.set) ? it.set : null,
+        set: (it.cls && EX_CLASS_IDS.includes(it.cls)) ? `ex_${it.cls}` : (SET_IDS.includes(it.set) ? it.set : null),
+        ...(EX_CLASS_IDS.includes(it.cls) ? { cls: it.cls } : {}),
         locked: !!it.locked,
         tradable: it.tradable !== false,
       }));
@@ -705,6 +709,7 @@ export class Economy extends Phaser.Events.EventEmitter {
     this.sealed = (Array.isArray(d.sealed) ? d.sealed : []).map((s) => ({
       ilvl: Phaser.Math.Clamp(int(s?.ilvl, 1), 1, 300), world: Phaser.Math.Clamp(int(s?.world, 0), 0, WORLDS.length - 1),
       diff: Phaser.Math.Clamp(int(s?.diff, oldDiff(s?.ilvl)), 0, BALANCE.difficulties.length - 1),
+      ...(s?.ex ? { ex: true } : {}),
     }));
     this.nextItemUid = Math.max(int(d.nextItemUid, 1), this.items.reduce((m, it) => Math.max(m, it.uid), 0) + 1);
     this.stats = emptyStats();

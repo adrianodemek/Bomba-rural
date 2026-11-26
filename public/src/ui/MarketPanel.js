@@ -5,7 +5,9 @@ import { STR } from '../config/strings.js';
 import { Panel } from './Panel.js';
 import { Button } from './Button.js';
 import { RoomView } from './RoomView.js';
-import { txt, card } from './widgets.js';
+import { txt, card, fit } from './widgets.js';
+import { RARITY_COLORS, RARITY_TEXT } from '../data/heroes.js';
+import { itemTitle, itemSubtitle, itemIcon } from './itemText.js';
 
 const W = BALANCE.screen.width;
 const ROOM_Y = 92;
@@ -37,6 +39,29 @@ export class MarketPanel extends Panel {
       this.add(b);
     });
     this.add(txt(s, W / 2, y + 296, STR.marketFoot, 17, TXT.dim).setOrigin(0.5).setAlign('center').setWordWrapWidth(W - 80));
+
+    // Vitrine (prévia): como vão aparecer os exclusivos de classe à venda. Tudo desligado até o servidor.
+    const vy = y + 340;
+    const SAMPLE = [
+      { item: { slot: 'weapon', rarity: 3, ilvl: 120, plus: 7, stars: 0, cls: 'attacker', affixes: [] }, price: 480, seller: 'Pavio_Real' },
+      { item: { slot: 'helm', rarity: 2, ilvl: 88, plus: 3, stars: 0, cls: 'support', affixes: [] }, price: 150, seller: 'Engrenagem' },
+      { item: { slot: 'boots', rarity: 4, ilvl: 210, plus: 0, stars: 1, cls: 'collector', affixes: [] }, price: 1200, seller: 'Garimpeira' },
+    ];
+    this.add(txt(s, 24, vy, STR.marketShowcase, 22, TXT.gold, true).setOrigin(0, 0.5));
+    SAMPLE.forEach((o, i) => {
+      const ry = vy + 30 + i * 92;
+      const bg = card(s, 24, ry, W - 48, 84, RARITY_COLORS[o.item.rarity], 0x120a1e);
+      const icon = s.add.image(70, ry + 42, itemIcon(o.item)).setDisplaySize(70, 70);
+      const name = fit(txt(s, 118, ry + 26, itemTitle(o.item), 20, RARITY_TEXT[o.item.rarity], true).setOrigin(0, 0.5), 360);
+      const sub = fit(txt(s, 118, ry + 56, `${itemSubtitle(o.item)} · ${o.seller}`, 15, TXT.dim).setOrigin(0, 0.5), 360);
+      const price = new Button(s, W - 110, ry + 42, 150, 56, `    ${o.price}`, () => s.toast.show(STR.marketLocked, 2200), {
+        fontSize: 18, color: COL.card, border: COL.border,
+      });
+      price.setAlpha(0.7);
+      const gem = s.add.image(W - 160, ry + 42, 'crystal').setDisplaySize(30, 30).setAlpha(0.85);
+      this.add([bg, icon, name, sub, price, gem]);
+    });
+    this.add(txt(s, W / 2, vy + 316, STR.marketShowcaseNote, 16, TXT.dim).setOrigin(0.5).setAlign('center').setWordWrapWidth(W - 80));
     this.onOpen = () => this.room.setRoom('mercado');
   }
 

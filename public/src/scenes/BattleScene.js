@@ -916,11 +916,16 @@ export class BattleScene extends Phaser.Scene {
       economy.addCrystals(BALANCE.boss.crystals);
       addRandomGem();
     }
-    const sealed = Math.random() < BALANCE.items.stageSealedChance ? 1 : 0;
-    if (sealed) economy.addSealed(1, currentItemLevel(), economy.world);
+    const normalSealed = Math.random() < BALANCE.items.stageSealedChance ? 1 : 0;
+    if (normalSealed) economy.addSealed(1, currentItemLevel(), economy.world);
+    // Chefe: lacrado de equipamento exclusivo de classe (garantido na 1ª vitória).
+    const X = BALANCE.items.exclusive;
+    const exSealed = wasBoss ? (rec.first ? X.bossFirst : (Math.random() < X.bossChance ? 1 : 0)) : 0;
+    if (exSealed) economy.addSealed(exSealed, currentItemLevel(), economy.world, true);
+    const sealed = normalSealed + exSealed;
     this.loot.stageReward(crystals, cages, keys);
     this.game.events.emit('stage-clear', {
-      gold: this.stageGold, crystals, cages, keys, chest, sealed, stars, starsGained: st.gained,
+      gold: this.stageGold, crystals, cages, keys, chest, sealed, exSealed, stars, starsGained: st.gained,
       milestones: st.newMilestones, worldStars: st.total, boss: wasBoss, time: elapsed, ...rec,
     });
 

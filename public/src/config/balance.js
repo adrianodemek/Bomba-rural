@@ -238,6 +238,15 @@ export const BALANCE = {
     chestSealedChance: 0.15,
     stageSealedChance: 0.1,
     rewardChestSealed: 1,
+    // Equipamentos exclusivos de classe (src/data/exclusive.js): só a classe dona equipa, valem mais e são negociáveis.
+    exclusive: {
+      bonus: 0.2,              // +20% em todos os atributos do item
+      revealChance: 0.03,      // qualquer lacrado comum: chance de sair exclusivo
+      bossFirst: 1,            // 1ª vitória em cada chefe: 1 lacrado exclusivo garantido
+      bossChance: 0.3,         // vitórias seguintes no chefe: chance de 1 lacrado exclusivo
+      rewardChestChance: 0.1,  // baú de recompensa: o lacrado sai exclusivo
+      abyssChance: 0.12,       // baú da arena no Abismo: o lacrado sai exclusivo
+    },
   },
 
   // ---------- Gemas ----------

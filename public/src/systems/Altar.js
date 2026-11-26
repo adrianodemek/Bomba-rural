@@ -22,7 +22,7 @@ export function heroRecipeCost(rarity) {
 
 function freeItems(slot, rarity) {
   return economy.items
-    .filter((it) => it.slot === slot && it.rarity === rarity && !it.locked && !economy.equippedBy(it.uid))
+    .filter((it) => it.slot === slot && it.rarity === rarity && !it.cls && !it.locked && !economy.equippedBy(it.uid))   // exclusivos ficam fora
     .sort((a, b) => itemPower(a) - itemPower(b));
 }
 

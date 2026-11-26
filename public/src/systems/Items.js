@@ -1,6 +1,7 @@
 // Equipamento: sorteio de itens, atributos, forja, fusão, desmontar e conjuntos.
 import { BALANCE } from '../config/balance.js';
 import { SLOTS, SLOT_IDS, SETS, SET_IDS, slotById, GEAR_SLOTS } from '../data/items.js';
+import { EX_CLASS_IDS } from '../data/exclusive.js';
 import { economy } from './Economy.js';
 import { stageGoldScale } from './Grid.js';
 
@@ -46,8 +47,12 @@ export function rollItem(ilvl, world, force = {}) {
     const attr = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
     affixes.push({ attr, roll: round2(0.7 + Math.random() * 0.3) });
   }
-  const set = rarity >= I.setMinRarity && Math.random() < I.setChance ? pick(SET_IDS) : null;
   const diff = force.diff ?? itemDiffFor(ilvl);
+  // Exclusivo de classe: sempre do conjunto da própria classe.
+  if (force.cls && EX_CLASS_IDS.includes(force.cls)) {
+    return { uid: 0, slot, rarity, ilvl, world, diff, plus: 0, stars: 0, affixes, set: `ex_${force.cls}`, cls: force.cls, locked: false, tradable: true };
+  }
+  const set = rarity >= I.setMinRarity && Math.random() < I.setChance ? pick(SET_IDS) : null;
   return { uid: 0, slot, rarity, ilvl, world, diff, plus: 0, stars: 0, affixes, set, locked: false, tradable: true };
 }
 
@@ -56,7 +61,8 @@ function levelMult(attr, ilvl) {
 }
 
 function qualityMult(item) {
-  return I.rarityMult[item.rarity] * (1 + I.plusBonus * item.plus) * (1 + I.starBonus * item.stars);
+  return I.rarityMult[item.rarity] * (1 + I.plusBonus * item.plus) * (1 + I.starBonus * item.stars)
+    * (item.cls ? 1 + I.exclusive.bonus : 1);
 }
 
 // Atributos que o item dá: { attack: 12.5, luck: 1.2, ... } e qual é o principal.
@@ -116,7 +122,8 @@ export function revealSealed() {
   if (economy.sealed.length === 0) return { error: 'none' };
   if (economy.items.length >= I.inventoryMax) return { error: 'full' };
   const s = economy.sealed.shift();
-  const item = economy.addItem(rollItem(s.ilvl, s.world, { diff: s.diff }));
+  const ex = s.ex || Math.random() < I.exclusive.revealChance;
+  const item = economy.addItem(rollItem(s.ilvl, s.world, { diff: s.diff, cls: ex ? pick(EX_CLASS_IDS) : undefined }));
   economy.bump('sealedRevealed');
   economy.emit('items');
   return { item };
@@ -247,6 +254,7 @@ export function toggleItemLock(item) {
 // verdict: 'equipped' (já usa este) · 'empty' (espaço vazio) · 'better' · 'worse' · 'same'.
 export function compareToEquipped(item, hero, slotKey = null) {
   if (!item || !hero) return null;
+  if (item.cls && item.cls !== hero.role) return null;   // exclusivo de outra classe
   const slots = GEAR_SLOTS.filter((g) => g.type === item.slot && (!slotKey || g.key === slotKey));
   if (!slots.length) return null;
   if (slots.some((g) => hero.gear?.[g.key] === item.uid)) return { verdict: 'equipped', hero };

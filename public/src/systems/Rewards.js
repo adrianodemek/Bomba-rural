@@ -26,7 +26,7 @@ export function openRewardChest() {
   economy.addMineral(economy.world, minerals);
   if (cage) economy.addCages(cage);
   const sealed = BALANCE.items.rewardChestSealed;
-  economy.addSealed(sealed, currentItemLevel(), economy.world);
+  economy.addSealed(sealed, currentItemLevel(), economy.world, Math.random() < BALANCE.items.exclusive.rewardChestChance);
   const gem = addRandomGem();
   economy.emit('currency');
   return { gold, crystals, minerals, cage, sealed, gem, world: economy.world };

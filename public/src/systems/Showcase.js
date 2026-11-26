@@ -4,7 +4,7 @@ import { economy } from './Economy.js';
 import { statsOf } from './Roster.js';
 
 const itemOut = (it) => ({
-  s: it.slot, q: it.rarity, i: it.ilvl, p: it.plus || 0, t: it.stars || 0, set: it.set || null,
+  s: it.slot, q: it.rarity, i: it.ilvl, p: it.plus || 0, t: it.stars || 0, set: it.set || null, ...(it.cls ? { c: it.cls } : {}),
   a: (it.affixes || []).map((x) => [x.attr, x.roll]),
 });
 
@@ -32,6 +32,6 @@ export function buildShowcase() {
 
 // Item da vitrine de volta no formato do jogo (para usar os textos de item).
 export const showcaseItem = (g) => ({
-  slot: g.s, rarity: g.q, ilvl: g.i, plus: g.p, stars: g.t, set: g.set,
+  slot: g.s, rarity: g.q, ilvl: g.i, plus: g.p, stars: g.t, set: g.set, ...(g.c ? { cls: g.c } : {}),
   affixes: (g.a || []).map(([attr, roll]) => ({ attr, roll })),
 });

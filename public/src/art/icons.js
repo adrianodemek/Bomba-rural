@@ -4,6 +4,8 @@
 // desenho em alta resolução e suavizado (filtro linear, não pixel art).
 import { ICON_SHEET, ICON_FRAMES, ICON_SIZES } from '../config/iconArt.js';
 import { PAINTED_SHEET, PAINTED_FRAMES, PAINTED_SIZES } from '../config/iconPainted.js';
+import { EX_ART, EX_CELL } from '../config/exclusiveArt.js';
+import { SLOT_IDS } from '../data/items.js';
 import { fitFrame } from './hd.js';
 
 const SHEET = 'icon_sheet';
@@ -13,11 +15,22 @@ export function loadIcons(scene) {
   if (scene.sys.game.renderer.type !== Phaser.WEBGL) return; // o ajuste de tamanho só funciona no WebGL
   scene.load.image(SHEET, ICON_SHEET);
   scene.load.image(PAINTED, PAINTED_SHEET);
+  // Equipamentos exclusivos: uma folha 3 × 3 por classe e raridade (só as que já têm arte).
+  for (const k of EX_ART) scene.load.image(`ex_sheet_${k}`, `assets/icons/ex_${k}.png`);
 }
 
 export function setupIcons(scene) {
   cutSheet(scene, SHEET, ICON_FRAMES, ICON_SIZES);
   cutSheet(scene, PAINTED, PAINTED_FRAMES, { ...ICON_SIZES, ...PAINTED_SIZES });
+  // Mesmo tamanho lógico dos ícones de item comuns (as telas usam a mesma escala).
+  const itemSize = scene.textures.exists('item_weapon_0') ? scene.textures.get('item_weapon_0').get().width : 16;
+  for (const k of EX_ART) {
+    const [cls, r] = k.split('_');
+    const frames = {};
+    SLOT_IDS.forEach((slot, i) => { frames[`ex_${cls}_${slot}_${r}`] = [(i % 3) * (EX_CELL + 2), Math.floor(i / 3) * (EX_CELL + 2), EX_CELL, EX_CELL]; });
+    const sizes = Object.fromEntries(Object.keys(frames).map((key) => [key, itemSize]));
+    cutSheet(scene, `ex_sheet_${k}`, frames, sizes);
+  }
 }
 
 // Recorta cada ícone da folha numa textura própria com o nome do ícone, no tamanho lógico da arte antiga.

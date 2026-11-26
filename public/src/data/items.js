@@ -1,4 +1,5 @@
 // Espaços de equipamento e conjuntos (nomes originais do Bomba Rural).
+import { EX_SETS } from './exclusive.js';
 
 // main = atributo principal do espaço.
 export const SLOTS = [
@@ -53,4 +54,7 @@ export const SETS = {
     bonus4: { attr: 'penetration', flat: 10 },
   },
 };
+// Conjuntos que caem nos itens comuns (os exclusivos de classe usam o conjunto da própria classe).
 export const SET_IDS = Object.keys(SETS);
+Object.assign(SETS, EX_SETS);
+export const ALL_SET_IDS = Object.keys(SETS);

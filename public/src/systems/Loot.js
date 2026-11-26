@@ -69,7 +69,8 @@ export class LootSystem {
     if (obj.type === 'chest') {
       const bonus = luck + economy.treeSum('chestPct') + (ab.treasure || 0); // árvore + Caça-Tesouro
       if (Math.random() < BALANCE.items.chestSealedChance + bonus) {
-        economy.addSealed(1, currentItemLevel(), economy.arenaWorld);
+        const ex = economy.mode === 'endless' && Math.random() < BALANCE.items.exclusive.abyssChance;
+        economy.addSealed(1, currentItemLevel(), economy.arenaWorld, ex);
         this.fly('sealed', x, y, 4, HUD.gold, 'sealed-arrive');
         this.floatText(x, y - 112, STR.plusSealed, '#e8c890');
       }
