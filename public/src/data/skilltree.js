@@ -30,9 +30,9 @@ export const TREE = [
   N('s8', 'Fôlego II', 'energyPct', 0.06, 5, 1180, 420, ['s4', 's5'], 3e5, 2.3),
   N('s9', 'Comandante IV', 'attackPct', 0.02, 1, 1340, 410, ['s7', 's8'], 6e8),
   N('s10', 'Cápsula Turbo II', 'recoveryPct', 0.12, 5, 1040, 310, ['s5', 's6'], 5e5, 2.3),
-  N('s11', 'Comandante V', 'attackPct', 0.02, 1, 1300, 290, ['s9'], 1.2e10),
+  N('s11', 'Comandante V', 'attackPct', 0.02, 1, 1300, 290, ['s9'], 1e10),
   N('s12', 'Pernas Leves II', 'speedPct', 0.04, 5, 1170, 270, ['s10', 's8'], 8e6, 2.3),
-  N('s13', 'Comandante VI', 'attackPct', 0.02, 1, 1200, 150, ['s11', 's12'], 3e11),
+  N('s13', 'Comandante VI', 'attackPct', 0.02, 1, 1200, 150, ['s11', 's12'], 8e10),
 
   // ---------- Combate (baixo) ----------
   N('c1', 'Pólvora Fina', 'attackPct', 0.03, 10, 700, 850, ['start'], 400, 2),
