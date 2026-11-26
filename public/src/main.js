@@ -36,6 +36,18 @@ if (testBoss) {
   window.__TEST_BOSS = 1;
 }
 
+// Volta rápida: o celular às vezes descarta a aba do jogo em segundo plano (falta de memória) e ela
+// recarrega quando o jogador volta. Ao sair da aba guardamos um aviso na sessão; se a página
+// recarregar com esse aviso (até 30 min depois), pula a tela inicial e reabre a mesma aba do menu.
+const RESUME_KEY = 'bomba-rural-retomar';
+let resume = null;
+try {
+  const r = JSON.parse(sessionStorage.getItem(RESUME_KEY) || 'null');
+  if (r && Date.now() - (r.at || 0) < 30 * 60e3) resume = r;
+  sessionStorage.removeItem(RESUME_KEY);
+} catch (e) { resume = null; }
+if (resume || document.wasDiscarded) window.__SKIP_INTRO = 1;
+
 async function waitForFonts() {
   try {
     await Promise.race([
@@ -143,11 +155,33 @@ waitForFonts().then(accountStep).then(() => {
     scene: [BootScene, PreloadScene, BattleScene, UIScene],
   });
 
-  // Se o celular derrubar a placa de vídeo do jogo (falta de memória), salva na hora e recarrega quando ela voltar.
+  // Se o celular derrubar a placa de vídeo do jogo ao trocar de aba ou de app, salva na hora.
+  // Quando ela volta, o próprio Phaser (3.80+) refaz as texturas e o jogo continua de onde estava
+  // (antes a página recarregava aqui e o jogador voltava para a tela inicial).
   game.events.once('ready', () => {
     game.canvas?.addEventListener('webglcontextlost', () => { SaveSystem.save(economy); }, false);
-    game.canvas?.addEventListener('webglcontextrestored', () => { SaveSystem.save(economy); window.location.reload(); }, false);
   });
+
+  // Ao sair da aba: aviso de "volta rápida" com a aba do menu aberta. Ao voltar sem recarregar, apaga.
+  const markResume = () => {
+    try {
+      const tab = game.scene.getScene('UI')?.activeTab || 'battle';
+      sessionStorage.setItem(RESUME_KEY, JSON.stringify({ at: Date.now(), tab }));
+    } catch (e) { /* ok */ }
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') markResume();
+    else { try { sessionStorage.removeItem(RESUME_KEY); } catch (e) { /* ok */ } }
+  });
+  window.addEventListener('pagehide', markResume);
+  if (resume?.tab && resume.tab !== 'battle' && !testBoss) {
+    const reopen = (tries = 0) => {
+      const ui = game.scene.getScene('UI');
+      if (!ui?.toast || !game.scene.isActive('UI')) { if (tries < 40) setTimeout(() => reopen(tries + 1), 400); return; }
+      try { ui.showTab(resume.tab); } catch (e) { /* aba que não existe mais */ }
+    };
+    setTimeout(reopen, 1200);
+  }
 
   if (testBoss) {
     // Espera a arena e a interface ficarem prontas e vai para a fase escolhida (no Normal),
