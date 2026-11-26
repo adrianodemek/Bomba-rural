@@ -10,7 +10,7 @@ import { openRewardChest } from '../systems/Rewards.js';
 import { RitualPanel } from '../ui/RitualPanel.js';
 import { InventoryPanel } from '../ui/InventoryPanel.js';
 import { MarketPanel } from '../ui/MarketPanel.js';
-import { ClanPanel, drawShield } from '../ui/ClanPanel.js';
+import { ClanPanel } from '../ui/ClanPanel.js';
 import { MorePanel, ensureMenuIcon, drawFullscreenIcon } from '../ui/MorePanel.js';
 import { premiumDaysLeft } from '../systems/Premium.js';
 import { SkillTreePanel } from '../ui/SkillTreePanel.js';
@@ -87,7 +87,7 @@ NAV.forEach((n) => n.kids.forEach((k) => { PARENT[k] = n.id; }));
 // Ícones de cada painel (sub-abas e comemoração de aba nova).
 const KID_ICON = {
   heroes: ['ui_heroes', 3], inventory: ['icon_bag', 4], forge: ['icon_forge', 4], skills: ['icon_skills', 4],
-  map: ['icon_map', 4], house: ['icon_house', 4], market: ['icon_market', 4], battle: ['ui_bomb', 3], more: ['icon_menu', 3],
+  map: ['icon_map', 4], clan: ['icon_clan', 4], ranking: ['icon_ranking', 4], house: ['icon_house', 4], market: ['icon_market', 4], battle: ['ui_bomb', 3], more: ['icon_menu', 3],
 };
 const RAIL_X = W - 44;   // coluna de atalhos dentro do campo, à direita
 const DIFF_CHIP = [0x8fe07a, 0x8cc2f5, 0xffb66b, 0xff7a94, 0xc8a0ff];   // cor da etiqueta de cada dificuldade
@@ -249,7 +249,7 @@ export class UIScene extends Phaser.Scene {
     economy.pendingSeason = null;
     const items = [
       { icon: 'crystal', text: STR.rewardCrystals(r.crystals), color: '#9fe8ff' },
-      { icon: 'star', text: `${r.essence} essência`, color: '#c8b0ff' },
+      { icon: 'essence', text: `${r.essence} essência`, color: '#c8b0ff' },
     ];
     if (r.cages) items.push({ icon: 'cage', scale: 3, text: `${r.cages} gaiola`, color: TXT.good });
     this.rewardModal.show({ top: { icon: 'star' }, ribbon: 'purple', title: STR.seasonTitle, subtitle: STR.seasonResult(r.best), items }, () => this.showPassEnd());
@@ -399,7 +399,7 @@ export class UIScene extends Phaser.Scene {
     if (r.crystals) items.push({ icon: 'crystal', text: STR.rewardCrystals(r.crystals), color: '#9fe8ff' });
     if (r.gold) items.push({ icon: 'coin', text: STR.rewardGold(fmt(r.gold)), color: TXT.gold });
     if (r.keys) items.push({ icon: 'key', text: STR.rewardKeys(r.keys), color: TXT.gold });
-    if (r.essence) items.push({ icon: 'star', text: `${r.essence} essência`, color: '#c8b0ff' });
+    if (r.essence) items.push({ icon: 'essence', text: `${r.essence} essência`, color: '#c8b0ff' });
     if (r.chests) items.push({ icon: 'ui_chest', scale: 4, text: STR.passReward.chests(r.chests), color: TXT.gold });
     if (r.sealed) items.push({ icon: 'sealed', scale: 4, text: STR.passReward.sealed(r.sealed), color: '#e8c890' });
     if (r.gemKeys?.length === 1) items.push({ icon: `gem_${r.gemKeys[0].split(':')[0]}`, text: gemLabel(r.gemKeys[0]), color: '#ffa0d8' });
@@ -1022,7 +1022,7 @@ export class UIScene extends Phaser.Scene {
     const premTxt = () => (premiumActive() ? STR.moreSub.premiumOn(premiumDaysLeft()) : STR.moreSub.premiumOff);
     const tiles = [
       { id: 'map', icon: 'icon_map', scale: 5.2, label: STR.tabs.map, sub: () => STR.moreSub.map, dot: () => !!this.badgeState?.map, onTap: () => this.showTab('map') },
-      { id: 'clan', draw: (s, x, y) => drawShield(s, x, y, 72), label: STR.clanTitle, sub: () => STR.moreSub.clan, onTap: () => this.showTab('clan') },
+      { id: 'clan', icon: 'icon_clan', scale: 5, label: STR.clanTitle, sub: () => STR.moreSub.clan, onTap: () => this.showTab('clan') },
       { id: 'goals', icon: 'icon_trophy', scale: 5.2, label: STR.moreGoals, sub: () => STR.moreSub.goals, dot: () => claimableCount() > 0, onTap: () => this.showTab('goals') },
       { id: 'pass', icon: 'star', draw: (s, x, y) => {
         const img = s.add.image(x, y, 'star').setDisplaySize(84, 84);
@@ -1030,7 +1030,7 @@ export class UIScene extends Phaser.Scene {
         return img;
       }, label: STR.morePass, sub: () => STR.moreSub.pass(passLevel().level), dot: () => passClaimable() > 0, onTap: () => this.passModal.show() },
       { id: 'premium', icon: 'icon_premium', scale: 4.8, label: STR.morePremium, sub: premTxt, onTap: () => this.premiumModal.show() },
-      { id: 'records', icon: 'icon_trophy', scale: 4.2, draw: (s, x, y) => s.add.image(x, y, 'star').setScale(4.4), label: STR.moreRecords, sub: () => STR.moreSub.records,
+      { id: 'records', icon: 'icon_trophy', scale: 4.2, draw: (s, x, y) => s.add.image(x, y, 'star').setDisplaySize(80, 80), label: STR.moreRecords, sub: () => STR.moreSub.records,
         onTap: () => { this.showTab('goals'); this.panels.goals.showView('abyss'); } },
       { id: 'settings', icon: 'icon_gear', scale: 5, label: STR.settingsTitle, sub: () => STR.moreSub.settings, onTap: () => this.showTab('settings') },
       { id: 'fullscreen', draw: (s, x, y) => drawFullscreenIcon(s, x, y, 1.1), label: STR.moreFullscreen,
@@ -1038,7 +1038,7 @@ export class UIScene extends Phaser.Scene {
       { id: 'friends', icon: 'ui_heroes', scale: 4.4, label: STR.moreFriends, soon: true },
       { id: 'events', icon: 'ui_chest', scale: 4.8, label: STR.moreEvents, soon: true },
       { id: 'shop', icon: 'crystal', scale: 5.2, label: STR.moreShop, soon: true },
-      { id: 'ranking', icon: 'icon_trophy', scale: 5, label: STR.moreRanking, sub: () => STR.moreSub.ranking, onTap: () => this.showTab('ranking') },
+      { id: 'ranking', icon: 'icon_ranking', scale: 5, label: STR.moreRanking, sub: () => STR.moreSub.ranking, onTap: () => this.showTab('ranking') },
     ];
     return new MorePanel(this, { onClose: () => this.showTab('battle'), tiles });
   }
@@ -1204,7 +1204,7 @@ export class UIScene extends Phaser.Scene {
       challenges.push({ kind: 'colossus', icon: 'ui_bomb', scale: 2.6, title: STR.colossusZone, main: STR.todayTries(left), ratio: left / C });
       const cap = BALANCE.endless.essenceDailyCap;
       const used = cap - abyssEssenceLeft();
-      challenges.push({ kind: 'abyss', icon: 'star', scale: 3.2, title: STR.abyssName, main: STR.todayEssence(used, cap), ratio: used / cap });
+      challenges.push({ kind: 'abyss', icon: 'essence', scale: 3.6, title: STR.abyssName, main: STR.todayEssence(used, cap), ratio: used / cap });
     }
     const pl = passLevel();
     const n = passClaimable();
@@ -1280,7 +1280,7 @@ export class UIScene extends Phaser.Scene {
       { icon: 'coin', text: STR.rewardGold(fmt(r.gold)), color: TXT.gold },
       { icon: 'crystal', text: STR.rewardCrystals(r.crystals), color: '#9fe8ff' },
     ];
-    if (r.essence) items.push({ icon: 'star', text: `${r.essence} essência`, color: '#c8b0ff' });
+    if (r.essence) items.push({ icon: 'essence', text: `${r.essence} essência`, color: '#c8b0ff' });
     r.gemKeys.forEach((k) => items.push({ icon: `gem_${k.split(':')[0]}`, text: gemLabel(k), color: '#ffa0d8' }));
     if (r.sealed) items.push({ icon: 'sealed', scale: 4, text: `${r.sealed} lacrado`, color: '#e8c890' });
     this.rewardModal.show({ top: { icon: 'icon_map', size: 190 }, ribbon: 'green', title: STR.expCollected(r.hero?.name ?? ''), items: items.slice(0, 5) });
@@ -1427,7 +1427,7 @@ export class UIScene extends Phaser.Scene {
     Sfx.play(newBest ? 'reward' : 'fail');
     const items = [];
     if (crystals) items.push({ icon: 'crystal', text: STR.rewardCrystals(crystals), color: '#9fe8ff' });
-    if (essence) items.push({ icon: 'star', text: `${essence} essência`, color: '#c8b0ff' });
+    if (essence) items.push({ icon: 'essence', text: `${essence} essência`, color: '#c8b0ff' });
     if (gemKey) items.push({ icon: `gem_${gemKey.split(':')[0]}`, text: gemLabel(gemKey), color: '#ffa0d8' });
     let sub = STR.colossusEnd(fmt(damage), fmt(weekBest));
     if (nextTier) sub += `\n${STR.colossusNext(fmt(nextTier))}`;

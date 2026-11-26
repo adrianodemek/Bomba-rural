@@ -21,7 +21,8 @@ export class MorePanel extends Panel {
       const bg = card(s, x, y, TW, TH, t.soon ? COL.border : COL.gold, t.soon ? 0x1e1230 : COL.card);
       const cx = x + TW / 2;
       const glow = s.add.circle(cx, y + 74, 46, t.soon ? 0x3a2a50 : 0x5a2e8a, t.soon ? 0.35 : 0.45);
-      const icon = t.draw ? t.draw(s, cx, y + 74) : s.add.image(cx, y + 74, t.icon).setScale(t.scale ?? 5);
+      // Ícones pintados: todos do mesmo tamanho na tela (80 px), cabendo no círculo de fundo.
+      const icon = t.draw ? t.draw(s, cx, y + 74) : s.add.image(cx, y + 74, t.icon).setDisplaySize(t.size ?? 80, t.size ?? 80);
       if (t.soon) icon.setAlpha(0.45);
       const label = fit(txt(s, cx, y + 140, t.label, 21, t.soon ? TXT.dim : TXT.main, true).setOrigin(0.5), TW - 20);
       const sub = txt(s, cx, y + 168, '', 14, t.soon ? TXT.gold : TXT.dim).setOrigin(0.5);

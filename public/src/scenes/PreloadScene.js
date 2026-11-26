@@ -24,6 +24,13 @@ export class PreloadScene extends Phaser.Scene {
     generateAllTextures(this);
     setupIcons(this);
     createAnimations(this);
+    // Sem a folha pintada (modo Canvas): os ícones novos usam um parecido da arte antiga.
+    for (const [key, alt] of [['essence', 'star'], ['icon_ranking', 'icon_trophy'], ['icon_clan', 'icon_trophy']]) {
+      if (this.textures.exists(key) || !this.textures.exists(alt)) continue;
+      const src = this.textures.get(alt).getSourceImage();
+      if (src instanceof HTMLCanvasElement) this.textures.addCanvas(key, src);
+      else this.textures.addImage(key, src);
+    }
     this.scene.start('Battle');
   }
 }

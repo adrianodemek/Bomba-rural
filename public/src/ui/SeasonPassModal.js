@@ -29,7 +29,7 @@ const CELL_W = 200, CELL_H = 82;
 // Ícone e texto de cada tipo de prêmio.
 const KIND = [
   ['legend', 'cage', 0xf0923a], ['cages', 'cage'], ['crystals', 'crystal'], ['gold', 'coin'], ['keys', 'key'],
-  ['essence', 'star'], ['chests', 'ui_chest'], ['sealed', 'sealed'], ['gems', 'gem_sapphire'],
+  ['essence', 'essence'], ['chests', 'ui_chest'], ['sealed', 'sealed'], ['gems', 'gem_sapphire'],
 ];
 function describe(def) {
   const r = rewardValue(def);
