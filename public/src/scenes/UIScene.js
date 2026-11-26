@@ -551,8 +551,8 @@ export class UIScene extends Phaser.Scene {
   statusOf(h) {
     const b = this.battle.field.get(h.uid);
     if (b) return b.state;
-    if (this.battle.benched.has(h.uid)) return 'BENCHED';
     if (economy.capsules.includes(h.uid)) return 'CAPSULE';
+    if (this.battle.benched.has(h.uid)) return 'BENCHED';
     if (h.energy < BALANCE.teams.readyRatio * maxEnergy(h)) return 'RESTING';
     return 'READY';
   }

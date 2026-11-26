@@ -621,7 +621,12 @@ export class BattleScene extends Phaser.Scene {
   fillFromTeam(team) {
     for (const h of economy.teamMembers(team)) {
       if (this.field.size >= economy.teamSlots) break;
-      if (this.field.has(h.uid) || this.benched.has(h.uid) || !this.heroReady(h)) continue;
+      // Quem cansou nesta rodada só volta com a energia cheia (antes ficava "Cansado" a 100% até a equipe girar).
+      if (this.benched.has(h.uid)) {
+        if (h.energy < maxEnergy(h) * 0.99) continue;
+        this.benched.delete(h.uid);
+      }
+      if (this.field.has(h.uid) || !this.heroReady(h)) continue;
       this.spawnBomber(h, 300 + this.field.size * 150);
     }
   }
