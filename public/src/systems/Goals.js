@@ -93,6 +93,7 @@ export function claimableCount() {
   economy.daily.missions.forEach((_, i) => { const v = missionView(i); if (v.done && !v.claimed) n += 1; });
   if (bonusReady()) n += 1;
   for (const a of ACHIEVEMENTS) if (achView(a).claimable) n += 1;
+  if (economy.starSlotNext()?.ready) n += 1;
   return n;
 }
 

@@ -87,6 +87,7 @@ export class Economy extends Phaser.Events.EventEmitter {
     this.starClaims = {};              // marcos de estrelas já pagos: "d-w" → quantos
     this.essence = 0;                  // essência de despertar
     this.rosterUpgrades = 0;           // compras de vagas de herói
+    this.starSlots = 0;                // vagas do Comando do Esquadrão já liberadas
     this.treeRanks = { start: 1 };     // árvore de habilidades: nó → rank (o início é grátis)
     this.journeyStep = 0;              // Jornada do Mineiro: tarefa atual (passa do fim = concluída)
     this.unlockSeen = [];              // abas liberadas que já tiveram comemoração
@@ -221,9 +222,26 @@ export class Economy extends Phaser.Events.EventEmitter {
     return out;
   }
 
-  // Vagas por equipe: base + nós "Vaga Extra" da árvore (máx. 9).
+  // Vagas por equipe: base + vagas do Comando do Esquadrão (liberadas por estrelas em Metas; máx. 9).
   get teamSlots() {
-    return Math.min(9, BALANCE.teams.startSlots + this.treeSum('teamSlot'));
+    return Math.min(9, BALANCE.teams.startSlots + this.starSlots);
+  }
+
+  // Próxima vaga do Comando: quantas estrelas pede e se já pode liberar. null = todas liberadas.
+  starSlotNext() {
+    const list = BALANCE.teams.starSlots;
+    if (this.starSlots >= list.length) return null;
+    const target = list[this.starSlots];
+    const have = this.totalStars();
+    return { target, have, ready: have >= target, index: this.starSlots };
+  }
+
+  claimStarSlot() {
+    const n = this.starSlotNext();
+    if (!n || !n.ready) return false;
+    this.starSlots += 1;
+    this.emit('teams');
+    return true;
   }
 
   // ---------- Elenco ----------
@@ -590,6 +608,7 @@ export class Economy extends Phaser.Events.EventEmitter {
       essence: this.essence,
       rosterUpgrades: this.rosterUpgrades,
       treeRanks: { ...this.treeRanks },
+      starSlots: this.starSlots,
       progress: this.progress.map((r) => [...r]),
       keys: this.keys,
       rewardChests: this.rewardChests,
@@ -711,6 +730,9 @@ export class Economy extends Phaser.Events.EventEmitter {
     if (d.treeRanks && typeof d.treeRanks === 'object') {
       for (const [k, v] of Object.entries(d.treeRanks)) if (Number.isFinite(v) && v > 0) this.treeRanks[k] = Math.floor(v);
     }
+    // Saves antigos: as vagas compradas na árvore (nós s1, s4, s7, s9, s11, s13) viram vagas do Comando já liberadas.
+    const legacy = d.starSlots === undefined ? ['s1', 's4', 's7', 's9', 's11', 's13'].filter((k) => this.treeRanks[k] > 0).length : 0;
+    this.starSlots = Phaser.Math.Clamp(d.starSlots === undefined ? legacy : int(d.starSlots, 0), 0, BALANCE.teams.starSlots.length);
     this.world = Math.min(this.world, WORLDS.length - 1);
     this.difficulty = Math.min(this.difficulty, DIFFICULTIES.length - 1);
     this.stage = Math.min(this.stage, this.spw);

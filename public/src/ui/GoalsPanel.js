@@ -87,6 +87,21 @@ export class GoalsPanel extends Panel {
       if (claimBonus()) this.toast(STR.bonusClaimed);
     }, { fontSize: 22 });
     v.add(this.bonusBtn);
+
+    // Comando do Esquadrão: estrelas da conta liberam +1 herói em campo por equipe.
+    const cy = y + 130;
+    v.add(card(s, 24, cy, W - 48, 236, COL.gold));
+    v.add(s.add.image(58, cy + 36, 'star').setScale(3));
+    v.add(txt(s, 84, cy + 36, STR.cmdTitle, 24, TXT.gold).setOrigin(0, 0.5));
+    this.cmdField = txt(s, W - 48, cy + 36, '', 19, TXT.main).setOrigin(1, 0.5);
+    this.cmdNext = txt(s, 48, cy + 78, '', 19, TXT.main).setOrigin(0, 0.5);
+    this.cmdBar = new ProgressBar(s, 48, cy + 114, 370, 14, COL.gold);
+    this.cmdProg = txt(s, 430, cy + 114, '', 17, TXT.dim).setOrigin(0, 0.5);
+    this.cmdTip = txt(s, 48, cy + 184, STR.cmdTip, 17, TXT.dim).setOrigin(0, 0.5).setWordWrapWidth(W - 96);
+    this.cmdBtn = new Button(s, 590, cy + 100, 180, 64, STR.cmdBtn, () => {
+      if (economy.claimStarSlot()) this.toast(STR.cmdClaimed(economy.teamSlots));
+    }, { fontSize: 22 });
+    v.add([this.cmdField, this.cmdNext, this.cmdBar, this.cmdProg, this.cmdTip, this.cmdBtn]);
   }
 
   refreshMissions() {
@@ -102,6 +117,15 @@ export class GoalsPanel extends Panel {
       r.btn.setLabel(m.claimed ? STR.claimed : STR.collect).setEnabled(m.done && !m.claimed);
     });
     this.bonusBtn.setLabel(economy.daily.bonusClaimed ? STR.claimed : STR.collect).setEnabled(bonusReady());
+    const n = economy.starSlotNext();
+    this.cmdField.setText(STR.cmdField(economy.teamSlots));
+    fit(this.cmdNext.setText(n ? STR.cmdNext(n.target) : STR.cmdMax), 430);
+    this.cmdBar.setVisible(!!n); this.cmdProg.setVisible(!!n);
+    if (n) {
+      this.cmdBar.setValue(Math.min(1, n.have / n.target), n.ready ? 0x6fd36b : COL.gold);
+      this.cmdProg.setText(STR.missionProgress(Math.min(n.have, n.target), n.target));
+    }
+    this.cmdBtn.setVisible(!!n).setEnabled(!!n && n.ready);
   }
 
   // ---------- Conquistas ----------
@@ -327,7 +351,7 @@ export class GoalsPanel extends Panel {
     for (const [id, c] of Object.entries(this.views)) c.setVisible(id === this.view);
     ensureDaily();
     const ready = {
-      missions: economy.daily.missions.some((m, i) => { const v = missionView(i); return v && v.done && !v.claimed; }) || bonusReady(),
+      missions: economy.daily.missions.some((m, i) => { const v = missionView(i); return v && v.done && !v.claimed; }) || bonusReady() || !!economy.starSlotNext()?.ready,
       ach: ACHIEVEMENTS.some((a) => achView(a).claimable),
     };
     this.tabBtns.forEach((b) => {

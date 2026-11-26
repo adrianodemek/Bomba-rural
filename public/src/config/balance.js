@@ -427,7 +427,10 @@ export const BALANCE = {
 
   teams: {
     count: 3,
-    startSlots: 3,       // vagas por equipe (a árvore de habilidades aumenta depois)
+    startSlots: 3,       // vagas por equipe no começo
+    // Comando do Esquadrão (Metas → Missões): total de estrelas da conta que libera +1 herói em campo por equipe.
+    // Calibrado no simulador (dedicado 3 h/dia): 4ª vaga na 1ª sessão, 5ª ~dia 2, 6ª ~dia 6, 7ª ~dia 20, 8ª ~dia 50.
+    starSlots: [30, 250, 400, 650, 950, 1250],
     unlockWorld: [null, 0, 2], // Equipe B: vencer o Chefe do Mundo 1 (Fácil) · Equipe C: Chefe do Mundo 3
     readyRatio: 0.5,     // herói entra em campo com pelo menos 50% de energia
     checkEverySec: 1,

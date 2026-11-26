@@ -1575,6 +1575,11 @@ export class UIScene extends Phaser.Scene {
       }
     });
     if (starsGained) this.time.delayedCall(700, () => this.toast.show(STR.starsNew(starsGained), 1200));
+    // Acabou de alcançar as estrelas da próxima vaga do Comando do Esquadrão.
+    const cmd = economy.starSlotNext();
+    if (starsGained && cmd?.ready && cmd.have - starsGained < cmd.target) {
+      this.time.delayedCall(2000, () => { this.toast.show(STR.cmdReady, 2800); this.updateTrophyDot(); });
+    }
     if (milestones) this.time.delayedCall(1200, () => this.toast.show(STR.starMilestone(BALANCE.stage.starMilestones[0]), 2600));
     fit(this.bannerExtra.setText(STR.stageExtras(crystals, cages, keys, chest, sealed, essence)), 500);
     if (newRecord) this.toast.show(STR.abyssNewRecord, 1400);
