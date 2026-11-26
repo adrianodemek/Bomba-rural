@@ -18,6 +18,7 @@ import { Cloud } from './systems/Cloud.js';
 import { teamPower } from './systems/Difficulty.js';
 import { buildShowcase } from './systems/Showcase.js';
 import { showAuthGate, GUEST_KEY } from './ui/AuthGate.js';
+import { ensureDownloaded } from './ui/Download.js';
 
 // Modo de teste do chefe (Configurações → Testar o chefe): joga numa CÓPIA do save, na fase do chefe.
 // O save real (BALANCE.save.key) não é tocado; "Sair do teste" volta para ele.
@@ -96,7 +97,7 @@ async function accountStep() {
   BALANCE.save.key = userKey;
 }
 
-waitForFonts().then(accountStep).then(() => {
+waitForFonts().then(accountStep).then(() => ensureDownloaded().catch(() => {})).then(() => {
   document.getElementById('loading')?.remove();
 
   if (SaveSystem.load(economy) && SaveSystem.lastSavedAt) {
