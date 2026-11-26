@@ -1,12 +1,13 @@
 // Painel da equipe (embaixo do campo): equipes A/B/C, Poder × recomendado, cartões dos heróis e a faixa "Hoje".
 // A barra de objetivo (Jornada) fica no topo deste painel, mas é da UIScene.
-// Cartões: até 3 vagas = grandes (boneco, classe, nível, estado, energia); 4–6 = médios; 7–9 = compactos.
+// Cartões: até 3 vagas = grandes (nível, classe, boneco, nome, Ataque, energia); 4–6 = médios; 7–9 = compactos.
 import { BALANCE } from '../config/balance.js';
 import { COL, TXT } from '../config/theme.js';
 import { STR } from '../config/strings.js';
 import { RARITY_COLORS } from '../data/heroes.js';
 import { economy } from '../systems/Economy.js';
 import { maxEnergy } from '../systems/Energy.js';
+import { statsOf } from '../systems/Roster.js';
 import { teamPower, recommendedPower } from '../systems/Difficulty.js';
 import { txt, fit, ProgressBar, energyColor } from './widgets.js';
 import { setHeroPortrait } from '../art/hd.js';
@@ -21,16 +22,6 @@ const CARDS_Y = L.dockY + 128;      // cartões
 const CARDS_H = 196;
 const ACT_Y = L.dockY + 334;        // faixa "Hoje"
 const ACT_H = 80;
-
-// Etiqueta colorida do estado do herói.
-const STATE_CHIP = {
-  WALK: [0x8fe07a, '#12081c'], SEARCH: [0x4a3a68, TXT.main], PLANT: [0xffb66b, '#3a1a04'], FLEE: [0xffd36b, '#3a1a04'],
-  WAIT: [0x4a3a68, TXT.main], IDLE: [0x4a3a68, TXT.main], PAUSED: [0x8fe07a, '#12081c'], TIRED: [0xe0563b, '#ffffff'],
-  BENCHED: [0xe0563b, '#ffffff'], RESTING: [0x3a2c52, TXT.dim], CAPSULE: [0x6fd3f5, '#0a2030'], READY: [0x8fe07a, '#12081c'],
-};
-const STATE_DOT = {
-  TIRED: 0xe0563b, BENCHED: 0xe0563b, RESTING: 0x8a7aa8, CAPSULE: 0x6fd3f5, READY: 0x6fd36b, PAUSED: 0x6fd36b, PLANT: 0xffb66b,
-};
 
 export class Dock {
   constructor(scene, statusOf, onTap, actions = {}) {
@@ -182,33 +173,32 @@ export class Dock {
       const ch = CARDS_H;
       const bg = frame(s, x0, y0, cw, ch, COL.card).setOrigin(0).setStrokeStyle(3, COL.border);
       const c = { bg, hero: null, kind };
-      if (kind === 'big') {
-        c.portrait = s.add.sprite(x0 + 48, y0 + 82, 'hero0_down_0').setScale(4.1);
-        c.shadow = s.add.ellipse(x0 + 48, y0 + 132, 64, 12, 0x000000, 0.35);
-        c.role = s.add.image(x0 + 108, y0 + 30, 'role_attacker').setScale(3.2);
-        c.lvBg = frame(s, x0 + cw - 12, y0 + 30, 66, 30, 0x120a1e).setOrigin(1, 0.5).setStrokeStyle(2, 0x7a5418);
-        c.lv = txt(s, x0 + cw - 45, y0 + 30, '', 15, TXT.gold, true).setOrigin(0.5);
-        c.name = txt(s, x0 + 94, y0 + 72, '', 18, TXT.main, true).setOrigin(0, 0.5).setWordWrapWidth(cw - 102).setLineSpacing(-4);
-        c.chip = s.add.rectangle(x0 + 94, y0 + 116, 90, 26, 0x8fe07a).setOrigin(0, 0.5);
-        c.state = txt(s, x0 + 104, y0 + 116, '', 14, '#12081c', true).setOrigin(0, 0.5);
-        c.enLabel = txt(s, x0 + 14, y0 + 152, STR.energyLabel, 13, TXT.dim).setOrigin(0, 0.5);
-        c.enPct = txt(s, x0 + cw - 14, y0 + 152, '', 13, TXT.dim).setOrigin(1, 0.5);
-        c.bar = new ProgressBar(s, x0 + 12, y0 + 172, cw - 24, 12);
-        c.empty = txt(s, x0 + cw / 2, y0 + ch / 2, STR.emptySlot, 18, TXT.dim).setOrigin(0.5);
-        c.parts = [c.shadow, c.portrait, c.role, c.lvBg, c.lv, c.name, c.chip, c.state, c.enLabel, c.enPct, c.bar];
-        c.nameW = cw - 102;
-      } else {
-        const big = kind === 'mid';
-        c.portrait = s.add.sprite(x0 + cw / 2, y0 + (big ? 70 : 64), 'hero0_down_0').setScale(big ? 3.2 : 2.5);
-        c.shadow = s.add.ellipse(x0 + cw / 2, y0 + (big ? 110 : 98), cw * 0.5, 10, 0x000000, 0.35);
-        c.dot = s.add.circle(x0 + cw - 12, y0 + 12, 7, 0x6fd36b).setStrokeStyle(2, 0x120a1e);
-        c.lv = txt(s, x0 + 10, y0 + 14, '', 13, TXT.gold, true).setOrigin(0, 0.5);
-        c.name = txt(s, x0 + cw / 2, y0 + 132, '', big ? 15 : 13, TXT.main, true).setOrigin(0.5);
-        c.bar = new ProgressBar(s, x0 + 8, y0 + 172, cw - 16, 10);
-        c.empty = txt(s, x0 + cw / 2, y0 + ch / 2, '–', 22, TXT.dim).setOrigin(0.5);
-        c.parts = [c.shadow, c.portrait, c.dot, c.lv, c.name, c.bar];
-        c.nameW = cw - 12;
+      // Cartão: nível no alto, herói no centro, Ataque embaixo e a barra de energia.
+      // Sem etiqueta de estado: quem foi descansar fica apagado com a casinha na frente até voltar.
+      const cx = x0 + cw / 2;
+      const big = kind === 'big';
+      const mid = kind === 'mid';
+      const scale = big ? 4.1 : mid ? 3.8 : Math.min(3.1, (cw - 10) / 16);
+      const H = 20 * scale;                        // altura do boneco (pivô a 70% da altura)
+      const top = big ? 36 : 36 + Math.max(0, (112 - H) / 2);   // cabeça abaixo do nível (médio/compacto: centrado no espaço)
+      const py = y0 + top + 0.7 * H;
+      const footY = top + H;
+      c.lvBg = frame(s, cx, y0 + 18, big ? 70 : Math.min(60, cw - 10), 26, 0x120a1e).setStrokeStyle(2, 0x7a5418);
+      c.lv = txt(s, cx, y0 + 18, '', big ? 15 : 13, TXT.gold, true).setOrigin(0.5);
+      c.shadow = s.add.ellipse(cx, y0 + footY - 2, big ? 64 : cw * 0.5, big ? 12 : 10, 0x000000, 0.35);
+      c.portrait = s.add.sprite(cx, py, 'hero0_down_0').setScale(scale);
+      c.home = s.add.image(cx, y0 + footY - H * 0.3, 'icon_house').setDisplaySize(big ? 62 : mid ? 46 : 38, big ? 62 : mid ? 46 : 38);
+      c.parts = [c.shadow, c.portrait, c.home, c.lvBg, c.lv];
+      if (big) {
+        c.role = s.add.image(x0 + 22, y0 + 20, 'role_attacker').setScale(2.4);
+        c.name = txt(s, cx, y0 + 140, '', 16, TXT.main, true).setOrigin(0.5);
+        c.parts.push(c.role, c.name);
       }
+      c.atk = txt(s, cx, y0 + (big ? 162 : 160), '', big ? 15 : mid ? 14 : 12, '#ffb66b', true).setOrigin(0.5);
+      c.bar = new ProgressBar(s, x0 + 10, y0 + 180, cw - 20, big ? 12 : 10);
+      c.empty = txt(s, cx, y0 + ch / 2, big ? STR.emptySlot : '–', big ? 18 : 22, TXT.dim).setOrigin(0.5);
+      c.parts.push(c.atk, c.bar);
+      c.nameW = cw - 16;
       bg.setInteractive({ useHandCursor: true });
       bg.on('pointerup', () => this.onTap(this.shownTeam(), i, c.hero));
       this.layer.add([bg, ...c.parts, c.empty]);
@@ -234,25 +224,19 @@ export class Dock {
       }
       c.bg.setStrokeStyle(3, h.rarity > 0 ? RARITY_COLORS[h.rarity] : COL.border).setAlpha(1);
       setHeroPortrait(c.portrait, h);
-      const st = this.statusOf(h);
       const ratio = h.energy / maxEnergy(h);
       c.bar.setValue(ratio, energyColor(ratio));
-      const onField = this.scene.battle.field.has(h.uid);
-      c.portrait.setAlpha(onField || team !== economy.activeTeam ? 1 : 0.55);
+      // Fora de campo (na Casa / cápsula / esperando energia) na equipe que está jogando: apagado + casinha.
+      const away = team === economy.activeTeam && !this.scene.battle.field.has(h.uid) && economy.mode !== 'idle';
+      c.portrait.setAlpha(away ? 0.4 : 1);
+      c.shadow.setAlpha(away ? 0.15 : 0.35);
+      c.home.setVisible(away);
       c.lv.setText(STR.levelShort(h.level));
-      fit(c.name.setText(h.name), c.kind === 'big' ? 999 : c.nameW);
+      c.atk.setText(STR.cardAtk(fmt(statsOf(h).attack)));
+      fit(c.atk, c.nameW);
       if (c.kind === 'big') {
-        // Nome em até 2 linhas; se ainda não couber, encolhe.
-        c.name.setScale(1);
-        if (c.name.height > 46 || c.name.width > c.nameW + 2) c.name.setScale(Math.min(46 / c.name.height, c.nameW / c.name.width));
+        fit(c.name.setText(h.name), c.nameW);
         c.role.setTexture(`role_${h.role}`);
-        const [fill, color] = STATE_CHIP[st] || [0x4a3a68, TXT.main];
-        c.state.setText(STR.heroState[st] || st).setColor(color);
-        fit(c.state, c.nameW - 20);
-        c.chip.setFillStyle(fill).setSize(c.state.displayWidth + 20, 26);
-        c.enPct.setText(`${Math.round(Math.min(1, ratio) * 100)}%`);
-      } else {
-        c.dot.setFillStyle(STATE_DOT[st] ?? 0xf4ead8);
       }
     });
     this.refreshToday();

@@ -15,6 +15,7 @@ export const STR = {
   colossusDmgShort: (d) => `Dano ${d}`,
   teamPowerLabel: 'Poder da equipe',
   levelShort: (n) => `Nv ${n}`,
+  cardAtk: (v) => `Ataque ${v}`,
   energyLabel: 'Energia',
   levelTeamBtn: 'Subir nível da equipe',
   levelTeamSub: (n, cost) => `${n} ${n === 1 ? 'nível' : 'níveis'} · ${cost} ouro`,
