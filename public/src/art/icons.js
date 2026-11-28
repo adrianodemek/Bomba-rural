@@ -31,6 +31,27 @@ export function setupIcons(scene) {
     const sizes = Object.fromEntries(Object.keys(frames).map((key) => [key, itemSize]));
     cutSheet(scene, `ex_sheet_${k}`, frames, sizes);
   }
+  // Espaço vazio do equipamento: silhueta apagada da peça comum pintada (no lugar do ícone antigo).
+  if (EX_ART.includes('common_0')) {
+    for (const slot of SLOT_IDS) {
+      const key = `item_${slot}_empty`;
+      const srcKey = `ex_common_${slot}_0`;
+      if (!scene.textures.exists(srcKey)) continue;
+      const lw = scene.textures.exists(key) ? scene.textures.get(key).get().width : itemSize;
+      const src = scene.textures.get(srcKey).getSourceImage();
+      const cv = document.createElement('canvas');
+      cv.width = src.width; cv.height = src.height;
+      const g = cv.getContext('2d');
+      g.drawImage(src, 0, 0);
+      g.globalCompositeOperation = 'source-in';
+      g.fillStyle = 'rgba(190, 150, 240, 0.22)';
+      g.fillRect(0, 0, cv.width, cv.height);
+      if (scene.textures.exists(key)) scene.textures.remove(key);
+      const tex = scene.textures.addCanvas(key, cv);
+      tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
+      fitFrame(tex, lw, lw, 0.5);
+    }
+  }
 }
 
 // Recorta cada ícone da folha numa textura própria com o nome do ícone, no tamanho lógico da arte antiga.

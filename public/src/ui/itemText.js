@@ -47,5 +47,7 @@ export function setBonusLines(setId) {
 // Exclusivo com arte pronta: figura própria (ex_<classe>_<espaço>_<raridade>); senão o ícone comum do espaço.
 export function itemIcon(item) {
   if (item.cls && EX_ART.includes(`${item.cls}_${item.rarity}`)) return `ex_${item.cls}_${item.slot}_${item.rarity}`;
+  // Itens comuns com folha pintada (ex_common_<raridade>): figura nova; os que faltam usam o ícone antigo.
+  if (!item.cls && EX_ART.includes(`common_${item.rarity}`)) return `ex_common_${item.slot}_${item.rarity}`;
   return `item_${item.slot}_${item.rarity}`;
 }
